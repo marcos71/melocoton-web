@@ -1,0 +1,16 @@
+node_modules/
+dist/
+dev-dist/
+coverage/
+*.tsbuildinfo
+*.log
+
+# Editors
+.idea/
+.vscode/
+.DS_Store
+
+# Local secrets (RNF-23): only the example is committed
+.env
+.env.*
+!.env.example
