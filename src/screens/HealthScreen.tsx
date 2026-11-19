@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import { useHealthQuery, type HealthResponse } from '../api/health'
 import screenStyles from './Screen.module.css'
 import styles from './HealthScreen.module.css'
@@ -20,6 +21,9 @@ export function HealthScreen() {
 
   return (
     <section className={screenStyles.screen}>
+      <Link className={screenStyles.link} to="/">
+        <span aria-hidden="true">← </span>Volver al inicio
+      </Link>
       <h1 className={screenStyles.title}>Estado de la conexión</h1>
 
       {health.isPending && <p role="status">Consultando el estado de la API…</p>}

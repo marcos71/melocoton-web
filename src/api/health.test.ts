@@ -60,8 +60,11 @@ describe('fetchHealth', () => {
   })
 
   it('throwsANetworkErrorWhenTheApiCannotBeReached', async () => {
-    const { client } = clientAnswering(() => Promise.reject(new TypeError('Failed to fetch')))
+    // The default fetch turns the browser's TypeError into a network ApiError.
+    vi.stubGlobal('fetch', () => Promise.reject(new TypeError('Failed to fetch')))
 
-    await expect(fetchHealth(client)).rejects.toMatchObject({ code: NETWORK_ERROR })
+    await expect(fetchHealth(createApiClient('http://api.test'))).rejects.toMatchObject({
+      code: NETWORK_ERROR,
+    })
   })
 })

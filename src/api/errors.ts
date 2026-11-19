@@ -42,9 +42,29 @@ export function toApiError(status: number, body: unknown): ApiError {
 
 type RawResult<T> = { data?: T; error?: unknown; response: Response }
 
+const NETWORK_MESSAGES = {
+  unreachable: 'No se pudo conectar con la API. Revisá la conexión o que la API esté en marcha.',
+  timeout: 'La API tardó demasiado en responder. Revisá la conexión e intentá de nuevo.',
+} as const
+
+/** A call that never got an answer: the server was unreachable or took too long. */
+export function networkError(
+  cause: unknown,
+  reason: keyof typeof NETWORK_MESSAGES = 'unreachable',
+): ApiError {
+  return new ApiError(0, NETWORK_ERROR, NETWORK_MESSAGES[reason], { cause })
+}
+
+function isTimeout(cause: unknown): boolean {
+  return cause instanceof DOMException && cause.name === 'TimeoutError'
+}
+
 /**
  * Runs a request made with the typed client and returns its data, or throws
  * an ApiError: a business error, an unexpected response or a network failure.
+ * Only the failures of `fetch` itself (already an ApiError, see the client's
+ * default fetch) or its timeout count as network failures: any other thrown
+ * error is a bug and becomes an unexpected response with its cause kept.
  */
 export async function callApi<T>(send: () => Promise<RawResult<T>>): Promise<T> {
   let result: RawResult<T>
@@ -52,18 +72,15 @@ export async function callApi<T>(send: () => Promise<RawResult<T>>): Promise<T> 
     result = await send()
   } catch (cause) {
     if (cause instanceof ApiError) throw cause
-    if (cause instanceof TypeError) {
-      // fetch rejects with a TypeError when the server cannot be reached.
-      throw new ApiError(
-        0,
-        NETWORK_ERROR,
-        'No se pudo conectar con la API. Revisá la conexión o que la API esté en marcha.',
-        { cause },
-      )
-    }
+    if (isTimeout(cause)) throw networkError(cause, 'timeout')
     throw new ApiError(0, UNEXPECTED_RESPONSE, 'La API respondió algo inesperado.', { cause })
   }
   if (result.data !== undefined) return result.data
   if (result.response.ok) return undefined as T
   throw toApiError(result.response.status, result.error)
+}
+
+/** The text to show for any failure: the API message when there is one. */
+export function errorMessage(error: unknown): string {
+  return error instanceof ApiError ? error.message : 'Ocurrió un error inesperado. Probá de nuevo.'
 }

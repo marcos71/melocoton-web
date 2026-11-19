@@ -12,7 +12,7 @@ describe('HealthScreen', () => {
   it('showsALoadingTextWhileAsking', () => {
     stubFetch(() => new Promise<Response>(() => {}))
 
-    renderApp({ path: '/health' })
+    renderApp({ path: '/health', role: null })
 
     expect(screen.getByRole('heading', { name: 'Estado de la conexión' })).toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent('Consultando el estado de la API…')
@@ -21,7 +21,7 @@ describe('HealthScreen', () => {
   it('showsApiAndDatabaseUp', async () => {
     const fetchFn = stubFetch(async () => jsonResponse(200, { status: 'UP', database: 'UP' }))
 
-    renderApp({ path: '/health' })
+    renderApp({ path: '/health', role: null })
 
     expect(
       await screen.findByText('✓ La API y la base de datos están funcionando.'),
@@ -34,7 +34,7 @@ describe('HealthScreen', () => {
   it('showsTheDatabaseDownWhenTheApiAnswers503', async () => {
     stubFetch(async () => jsonResponse(503, { status: 'DOWN', database: 'DOWN' }))
 
-    renderApp({ path: '/health' })
+    renderApp({ path: '/health', role: null })
 
     expect(
       await screen.findByText('✕ La API responde, pero algo no está funcionando.'),
@@ -46,7 +46,7 @@ describe('HealthScreen', () => {
   it('showsTheErrorAfterRetryingTheReadOnce', async () => {
     const fetchFn = stubFetch(() => Promise.reject(new TypeError('Failed to fetch')))
 
-    renderApp({ path: '/health' })
+    renderApp({ path: '/health', role: null })
 
     const alert = await screen.findByRole('alert')
     expect(alert).toHaveTextContent('No se pudo consultar el estado de la API.')
@@ -59,14 +59,14 @@ describe('HealthScreen', () => {
       jsonResponse(500, { error: { code: 'internal_error', message: 'Algo salió mal.' } }),
     )
 
-    renderApp({ path: '/health' })
+    renderApp({ path: '/health', role: null })
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Algo salió mal.')
   })
 
   it('retriesOnDemandAfterAnError', async () => {
     const fetchFn = stubFetch(() => Promise.reject(new TypeError('Failed to fetch')))
-    renderApp({ path: '/health' })
+    renderApp({ path: '/health', role: null })
     await screen.findByRole('alert')
     fetchFn.mockImplementation(async () => jsonResponse(200, { status: 'UP', database: 'UP' }))
 

@@ -1,4 +1,11 @@
-import { ApiError, NETWORK_ERROR, UNEXPECTED_RESPONSE, callApi, toApiError } from './errors'
+import {
+  ApiError,
+  NETWORK_ERROR,
+  UNEXPECTED_RESPONSE,
+  callApi,
+  networkError,
+  toApiError,
+} from './errors'
 
 describe('toApiError', () => {
   it('readsCodeAndMessageFromTheErrorBody', () => {
@@ -42,14 +49,37 @@ describe('callApi', () => {
     await expect(call).rejects.toMatchObject({ status: 403, code: 'role_not_allowed' })
   })
 
-  it('turnsANetworkFailureIntoANetworkError', async () => {
-    const call = callApi(() => Promise.reject(new TypeError('Failed to fetch')))
+  it('passesANetworkErrorThrownByFetchThrough', async () => {
+    const thrown = networkError(new TypeError('Failed to fetch'))
 
-    await expect(call).rejects.toMatchObject({
+    await expect(callApi(() => Promise.reject(thrown))).rejects.toBe(thrown)
+    expect(thrown).toMatchObject({
       status: 0,
       code: NETWORK_ERROR,
       message: 'No se pudo conectar con la API. Revisá la conexión o que la API esté en marcha.',
     })
+  })
+
+  it('turnsATimeoutIntoANetworkError', async () => {
+    const cause = new DOMException('The operation timed out.', 'TimeoutError')
+
+    const error = await callApi(() => Promise.reject(cause)).catch((e: unknown) => e)
+
+    expect(error).toBeInstanceOf(ApiError)
+    expect(error).toMatchObject({
+      status: 0,
+      code: NETWORK_ERROR,
+      message: 'La API tardó demasiado en responder. Revisá la conexión e intentá de nuevo.',
+      cause,
+    })
+  })
+
+  it('doesNotTurnABugsTypeErrorIntoANetworkError', async () => {
+    const cause = new TypeError("Cannot read properties of undefined (reading 'x')")
+
+    const error = await callApi(() => Promise.reject(cause)).catch((e: unknown) => e)
+
+    expect(error).toMatchObject({ code: UNEXPECTED_RESPONSE, cause })
   })
 
   it('turnsAnyOtherThrownErrorIntoAnUnexpectedResponse', async () => {

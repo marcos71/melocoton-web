@@ -1,42 +1,20 @@
-import { Link, NavLink, Outlet } from 'react-router'
-import { ROLES, ROLE_LABELS, useRole, type Role } from '../auth/role'
+import { NavLink, Outlet } from 'react-router'
+import { useSession } from '../auth/session'
+import { AccountMenu } from './AccountMenu'
 import { TABS_BY_ROLE } from './tabs'
 import styles from './AppLayout.module.css'
 
-type AppLayoutProps = {
-  /** Temporary role picker until authentication exists (iteration 1). */
-  showRoleSwitch?: boolean
-}
-
-export function AppLayout({ showRoleSwitch = import.meta.env.DEV }: AppLayoutProps) {
-  const { role, setRole } = useRole()
-  const tabs = TABS_BY_ROLE[role]
+export function AppLayout() {
+  const { user } = useSession()
+  if (!user) return null
+  const tabs = TABS_BY_ROLE[user.role]
 
   return (
     <div className={styles.shell}>
       <header className={styles.appBar}>
         <span className={styles.brand}>Melocotón</span>
-        <Link className={styles.appBarLink} to="/health">
-          Conexión
-        </Link>
+        <AccountMenu />
       </header>
-
-      {showRoleSwitch && (
-        <div className={styles.roleSwitch}>
-          <label htmlFor="dev-role">Rol (provisorio, hasta el inicio de sesión)</label>
-          <select
-            id="dev-role"
-            value={role}
-            onChange={(event) => setRole(event.target.value as Role)}
-          >
-            {ROLES.map((option) => (
-              <option key={option} value={option}>
-                {ROLE_LABELS[option]}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
 
       <main className={styles.content}>
         <Outlet />
