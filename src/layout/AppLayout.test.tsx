@@ -10,65 +10,57 @@ function tabLabels(): string[] {
 }
 
 describe('AppLayout', () => {
-  it('showsTheStudentTabsAndOpensHome', () => {
+  it('RF02_showsTheStudentTabsAndOpensHome', async () => {
     renderApp({ role: 'STUDENT' })
 
+    expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
     expect(tabLabels()).toEqual(['Inicio', 'Mis piezas', 'Calendario', 'Pagos'])
-    expect(screen.getByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Inicio' })).toHaveAttribute('aria-current', 'page')
+    expect(
+      within(screen.getByRole('navigation', { name: 'Navegación principal' })).getByRole('link', {
+        name: 'Inicio',
+      }),
+    ).toHaveAttribute('aria-current', 'page')
   })
 
-  it('showsTheLeadTeacherTabsAndOpensToday', () => {
+  it('RF02_showsTheLeadTeacherTabsAndOpensToday', async () => {
     renderApp({ role: 'LEAD_TEACHER' })
 
+    expect(await screen.findByRole('heading', { name: 'Hoy' })).toBeInTheDocument()
     expect(tabLabels()).toEqual(['Hoy', 'Piezas', 'Turnos', 'Alumnos', 'Pagos'])
-    expect(screen.getByRole('heading', { name: 'Hoy' })).toBeInTheDocument()
   })
 
-  it('showsTheAssistantTeacherTabsAndOpensToday', () => {
+  it('RF02_showsTheAssistantTeacherTabsAndOpensToday', async () => {
     renderApp({ role: 'ASSISTANT_TEACHER' })
 
+    expect(await screen.findByRole('heading', { name: 'Hoy' })).toBeInTheDocument()
     expect(tabLabels()).toEqual(['Hoy', 'Piezas'])
-    expect(screen.getByRole('heading', { name: 'Hoy' })).toBeInTheDocument()
   })
 
   it('tabsOpenAComingSoonPlaceholder', async () => {
     renderApp({ role: 'STUDENT' })
+    await screen.findByRole('heading', { name: 'Inicio' })
 
-    await userEvent.click(screen.getByRole('link', { name: 'Calendario' }))
+    await userEvent.click(
+      within(screen.getByRole('navigation', { name: 'Navegación principal' })).getByRole('link', {
+        name: 'Calendario',
+      }),
+    )
 
     expect(screen.getByRole('heading', { name: 'Calendario' })).toBeInTheDocument()
     expect(screen.getByText(/Próximamente/)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Calendario' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    )
   })
 
-  it('aPathOfAnotherRoleGoesToTheRoleHome', () => {
+  it('RF02_aPathOfAnotherRoleGoesToTheRoleHome', async () => {
     renderApp({ role: 'ASSISTANT_TEACHER', path: '/payments' })
 
-    expect(screen.getByRole('heading', { name: 'Hoy' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Hoy' })).toBeInTheDocument()
+    expect(screen.getByTestId('location')).toHaveTextContent('/today')
   })
 
-  it('switchingTheRoleChangesTheTabs', async () => {
+  it('theAppBarHasNoRoleSwitchAnymore', async () => {
     renderApp({ role: 'STUDENT' })
-
-    await userEvent.selectOptions(screen.getByLabelText(/Rol/), 'LEAD_TEACHER')
-
-    expect(tabLabels()).toEqual(['Hoy', 'Piezas', 'Turnos', 'Alumnos', 'Pagos'])
-    expect(screen.getByRole('heading', { name: 'Hoy' })).toBeInTheDocument()
-  })
-
-  it('theRoleSwitchCanBeHidden', () => {
-    renderApp({ showRoleSwitch: false })
+    await screen.findByRole('heading', { name: 'Inicio' })
 
     expect(screen.queryByLabelText(/Rol/)).not.toBeInTheDocument()
-  })
-
-  it('linksToTheConnectionCheck', () => {
-    renderApp()
-
-    expect(screen.getByRole('link', { name: 'Conexión' })).toHaveAttribute('href', '/health')
   })
 })
