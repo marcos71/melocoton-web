@@ -7,17 +7,20 @@ type ConfirmDialogProps = {
   description: string
   confirmLabel: string
   pendingLabel: string
+  /** Text of the safe option; use a specific one when "Cancelar" would be ambiguous. */
+  cancelLabel?: string
   pending: boolean
   onConfirm: () => void
   onCancel: () => void
 }
 
-/** Confirmation of a consequential action: focus starts on "Cancelar", Escape cancels. */
+/** Confirmation of a consequential action: focus starts on the cancel button, Escape cancels. */
 export function ConfirmDialog({
   title,
   description,
   confirmLabel,
   pendingLabel,
+  cancelLabel = 'Cancelar',
   pending,
   onConfirm,
   onCancel,
@@ -37,10 +40,12 @@ export function ConfirmDialog({
       onCancel()
     }
     if (event.key === 'Tab') {
-      // Keep the focus inside the dialog: it has only these two buttons.
-      const first = confirmRef.current?.disabled ? cancelRef.current : confirmRef.current
-      const last = cancelRef.current
-      if (event.shiftKey && document.activeElement === first) {
+      // Keep the focus inside the dialog: it has only these two buttons, in DOM order.
+      const first = cancelRef.current
+      const last = confirmRef.current?.disabled ? cancelRef.current : confirmRef.current
+      if (pending) {
+        event.preventDefault()
+      } else if (event.shiftKey && document.activeElement === first) {
         event.preventDefault()
         last?.focus()
       } else if (!event.shiftKey && document.activeElement === last) {
@@ -68,6 +73,15 @@ export function ConfirmDialog({
         </p>
         <div className={styles.actions}>
           <button
+            ref={cancelRef}
+            type="button"
+            className={screenStyles.secondaryButton}
+            onClick={onCancel}
+            disabled={pending}
+          >
+            {cancelLabel}
+          </button>
+          <button
             ref={confirmRef}
             type="button"
             className={screenStyles.button}
@@ -75,15 +89,6 @@ export function ConfirmDialog({
             disabled={pending}
           >
             {pending ? pendingLabel : confirmLabel}
-          </button>
-          <button
-            ref={cancelRef}
-            type="button"
-            className={screenStyles.secondaryButton}
-            onClick={onCancel}
-            disabled={pending}
-          >
-            Cancelar
           </button>
         </div>
       </div>

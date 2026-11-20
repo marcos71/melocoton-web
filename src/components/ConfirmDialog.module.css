@@ -6,7 +6,7 @@
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  background: rgb(29 27 25 / 0.6);
+  background: color-mix(in srgb, var(--color-ink) 60%, transparent);
 }
 
 .dialog {
@@ -16,8 +16,8 @@
   width: 100%;
   max-width: 24rem;
   padding: 1.25rem;
-  background: var(--color-surface);
-  border: 2px solid var(--color-border-strong);
+  background: var(--color-paper);
+  border: 2px solid var(--color-ink);
   border-radius: 0.5rem;
 }
 
@@ -30,8 +30,24 @@
   margin: 0;
 }
 
+/* DI-52: the DOM order is Cancel, then the action. Stacked (narrow), the action goes on top;
+   in a row, the safe option stays on the left. */
 .actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column-reverse;
   gap: 0.5rem;
+}
+
+.actions > button {
+  align-self: stretch;
+}
+
+@media (min-width: 26rem) {
+  .actions {
+    flex-direction: row;
+  }
+
+  .actions > button {
+    align-self: auto;
+  }
 }

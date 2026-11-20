@@ -69,7 +69,7 @@ export function LoginScreen() {
 
         {apiError && (
           <p role="alert" className={styles.alert}>
-            {apiError}
+            <strong>Error:</strong> {apiError}
           </p>
         )}
 

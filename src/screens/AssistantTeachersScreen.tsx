@@ -4,20 +4,22 @@ import {
   useAssistantTeachersQuery,
   useDeactivateAssistantTeacher,
   type AssistantTeacher,
-  type StatusFilter,
+  type StatusFilter as StatusFilterValue,
 } from '../api/assistantTeachers'
 import { errorMessage } from '../api/errors'
 import { ConfirmDialog } from '../components/ConfirmDialog'
+import { QueryError } from '../components/QueryError'
+import { StatusFilter } from '../components/StatusFilter'
 import screenStyles from './Screen.module.css'
 import styles from './AssistantTeachersScreen.module.css'
 
-const FILTERS: { value: StatusFilter; label: string }[] = [
+const FILTERS: { value: StatusFilterValue; label: string }[] = [
   { value: 'active', label: 'Activos' },
   { value: 'inactive', label: 'Inactivos' },
   { value: 'all', label: 'Todos' },
 ]
 
-const EMPTY_TEXT: Record<StatusFilter, string> = {
+const EMPTY_TEXT: Record<StatusFilterValue, string> = {
   active: 'No hay docentes secundarios activos.',
   inactive: 'No hay docentes secundarios inactivos.',
   all: 'Todavía no hay docentes secundarios.',
@@ -35,7 +37,7 @@ export function AssistantTeachersScreen() {
   const location = useLocation()
   const [params, setParams] = useSearchParams()
   const raw = params.get('status')
-  const filter: StatusFilter = raw === 'inactive' || raw === 'all' ? raw : 'active'
+  const filter: StatusFilterValue = raw === 'inactive' || raw === 'all' ? raw : 'active'
 
   const teachers = useAssistantTeachersQuery(filter)
   const deactivate = useDeactivateAssistantTeacher()
@@ -71,25 +73,18 @@ export function AssistantTeachersScreen() {
         Agregar docente
       </Link>
 
-      <div role="group" aria-label="Filtrar por estado" className={styles.filters}>
-        {FILTERS.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            aria-pressed={filter === option.value}
-            className={filter === option.value ? `${styles.filter} ${styles.pressed}` : styles.filter}
-            onClick={() => setParams({ status: option.value }, { replace: true })}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
+      <StatusFilter
+        options={FILTERS}
+        value={filter}
+        onChange={(status) => setParams({ status }, { replace: true })}
+      />
 
       {feedback && (
         <p
           role={feedback.kind === 'error' ? 'alert' : 'status'}
           className={feedback.kind === 'error' ? screenStyles.alert : screenStyles.notice}
         >
+          {feedback.kind === 'error' && <strong>Error: </strong>}
           {feedback.text}
         </p>
       )}
@@ -97,18 +92,12 @@ export function AssistantTeachersScreen() {
       {teachers.isPending && <p role="status">Cargando docentes…</p>}
 
       {teachers.isError && (
-        <div role="alert" className={screenStyles.alert}>
-          <p className={screenStyles.alertTitle}>No se pudo cargar la lista.</p>
-          <p>{teachers.error.message}</p>
-          <button
-            type="button"
-            className={screenStyles.button}
-            onClick={() => void teachers.refetch()}
-            disabled={teachers.isFetching}
-          >
-            {teachers.isFetching ? 'Reintentando…' : 'Reintentar'}
-          </button>
-        </div>
+        <QueryError
+          title="No se pudo cargar la lista."
+          reason={teachers.error.message}
+          onRetry={() => void teachers.refetch()}
+          retrying={teachers.isFetching}
+        />
       )}
 
       {teachers.isSuccess && teachers.data.length === 0 && (

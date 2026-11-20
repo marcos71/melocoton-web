@@ -3,7 +3,7 @@
   flex-direction: column;
   gap: 0.75rem;
   padding: 1rem;
-  border: 2px solid var(--color-border-strong);
+  border: 2px solid var(--color-ink);
   border-left-width: 0.5rem;
   border-radius: 0.5rem;
 }
@@ -13,7 +13,7 @@
 }
 
 .up {
-  border-left-color: var(--color-ok);
+  border-left-color: var(--color-ink);
 }
 
 .down {
@@ -46,9 +46,9 @@
   min-height: 2.75rem;
   padding: 0 1rem;
   font: inherit;
-  border: 2px solid var(--color-border-strong);
+  border: 2px solid var(--color-ink);
   border-radius: 0.5rem;
-  background: var(--color-surface);
-  color: var(--color-text);
+  background: var(--color-paper);
+  color: var(--color-ink);
   cursor: pointer;
 }

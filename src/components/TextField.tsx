@@ -31,7 +31,7 @@ export function TextField({ label, error, hint, ...input }: TextFieldProps) {
       />
       {error && (
         <p id={errorId} className={styles.fieldError}>
-          {error}
+          <strong>Error:</strong> {error}
         </p>
       )}
     </div>

@@ -84,7 +84,7 @@ export function NewAssistantTeacherScreen() {
 
         {apiError && (
           <p role="alert" className={styles.alert}>
-            {apiError}
+            <strong>Error:</strong> {apiError}
           </p>
         )}
 

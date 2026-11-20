@@ -50,7 +50,8 @@ export function SetPasswordScreen() {
       <section className={styles.screen}>
         <h1 className={styles.title}>Definí tu contraseña</h1>
         <div role="alert" className={styles.alert}>
-          <p>El enlace no es válido. Pedí uno nuevo.</p>
+          <p>
+            <strong>Error:</strong> El enlace no es válido. Pedí uno nuevo.</p>
         </div>
         <Link className={styles.link} to="/forgot-password">
           Pedir un enlace nuevo
@@ -111,7 +112,9 @@ export function SetPasswordScreen() {
 
         {failure && (
           <div role="alert" className={styles.alert}>
-            <p>{failure.message}</p>
+            <p>
+              <strong>Error:</strong> {failure.message}
+            </p>
             {failure.expired && (
               <Link className={styles.link} to="/forgot-password">
                 Pedir un enlace nuevo

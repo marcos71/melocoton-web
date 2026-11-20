@@ -76,7 +76,7 @@ describe('session start', () => {
 
     renderApp({ role: null })
 
-    expect(await screen.findByText('No se pudo verificar tu sesión.')).toBeInTheDocument()
+    expect(await screen.findByText('Error: No se pudo verificar tu sesión.')).toBeInTheDocument()
     expect(screen.getByRole('alert')).toHaveTextContent('No se pudo conectar con la API.')
     // The read is retried once before giving up.
     expect(requestsTo(fetchFn, 'GET /api/v1/auth/session')).toHaveLength(2)
@@ -128,7 +128,7 @@ describe('public screens while the stored token is checked (CU-01, RF-01)', () =
     renderApp({ role: null, path: '/login' })
     expect(await screen.findByRole('heading', { name: 'Ingresar' })).toBeInTheDocument()
     expect(screen.getByLabelText('Contraseña')).toBeInTheDocument()
-    expect(screen.queryByText('No se pudo verificar tu sesión.')).not.toBeInTheDocument()
+    expect(screen.queryByText('Error: No se pudo verificar tu sesión.')).not.toBeInTheDocument()
     expect(tokenStore.get()?.accessToken).toBe(TEST_TOKEN)
   })
 
@@ -144,7 +144,7 @@ describe('public screens while the stored token is checked (CU-01, RF-01)', () =
 
     renderApp({ role: null, path: '/payments' })
 
-    expect(await screen.findByText('No se pudo verificar tu sesión.')).toBeInTheDocument()
+    expect(await screen.findByText('Error: No se pudo verificar tu sesión.')).toBeInTheDocument()
     expect(screen.getByRole('alert')).toHaveTextContent('No se pudo conectar con la API.')
     expect(screen.getByTestId('location')).toHaveTextContent('/payments')
     up = true
@@ -163,7 +163,7 @@ describe('public screens while the stored token is checked (CU-01, RF-01)', () =
     })
 
     renderApp({ role: null, path: '/', now: () => now })
-    await screen.findByText('No se pudo verificar tu sesión.')
+    await screen.findByText('Error: No se pudo verificar tu sesión.')
 
     expect(requestsTo(fetchFn, 'POST /api/v1/auth/refresh')).toHaveLength(0)
   })

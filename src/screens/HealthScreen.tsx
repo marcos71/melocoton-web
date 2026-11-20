@@ -30,7 +30,7 @@ export function HealthScreen() {
 
       {health.isError && (
         <div role="alert" className={`${styles.card} ${styles.down}`}>
-          <p className={styles.headline}>✕ No se pudo consultar el estado de la API.</p>
+          <p className={styles.headline}>Error: No se pudo consultar el estado de la API.</p>
           <p>{health.error.message}</p>
           <button
             type="button"
@@ -51,7 +51,7 @@ export function HealthScreen() {
           <p className={styles.headline}>
             {health.data.status === 'UP'
               ? '✓ La API y la base de datos están funcionando.'
-              : '✕ La API responde, pero algo no está funcionando.'}
+              : 'Error: La API responde, pero algo no está funcionando.'}
           </p>
           <dl className={styles.list}>
             <div className={styles.row}>
