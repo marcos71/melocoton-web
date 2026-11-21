@@ -1,0 +1,55 @@
+/* Buttons of the student forms (DI-52): stacked, the action goes on top; in a row, the safe option stays on the left. */
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.actions > button {
+  align-self: stretch;
+}
+
+@media (min-width: 48rem) {
+  .actions {
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .actions > button {
+    align-self: auto;
+  }
+}
+
+.readOnly {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0;
+}
+
+.readOnly dt {
+  font-weight: 600;
+}
+
+.readOnly dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-height: 1.5rem;
+}
+
+.summary p {
+  margin: 0;
+}
+
+.summaryTitle {
+  font-weight: 700;
+}

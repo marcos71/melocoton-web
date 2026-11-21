@@ -12,13 +12,13 @@ export interface paths {
             cookie?: never;
         };
         /** List assistant teachers, ordered by name; optionally only active or inactive (CU-02 D1) */
-        get: operations["list"];
+        get: operations["list_1"];
         put?: never;
         /**
          * Invite an assistant teacher; they get an email to define their password (CU-02 D1, RF-53)
          * @description Name, email and phone are required. The email must not belong to any other account.
          */
-        post: operations["create"];
+        post: operations["create_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -147,10 +147,183 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/slots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List slots ordered by day and start time (CU-03, RF-07)
+         * @description Each slot carries its future lessons with more occupied places than the capacity (DI-43).
+         */
+        get: operations["list"];
+        put?: never;
+        /**
+         * Create a slot (CU-03, RF-06)
+         * @description A slot may not overlap another active slot of the same day; touching ends are fine (DI-25).
+         */
+        post: operations["create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/slots/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One slot (CU-03, RF-07) */
+        get: operations["get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Edit a slot (CU-03, RF-06, DI-45)
+         * @description At least one field. The capacity cannot go below the occupancy of any future lesson. Day and time can change only while the slot has no bookings, and may not overlap another active slot.
+         */
+        patch: operations["update"];
+        trace?: never;
+    };
+    "/api/v1/students": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List students ordered by name (CU-02, RF-05)
+         * @description status defaults to ACTIVE. enrollmentType and slotId (the fixed slot) narrow the list when sent.
+         */
+        get: operations["listStudents"];
+        put?: never;
+        /**
+         * Register a student; they get an email to define their password (CU-02, RF-04, RF-05, DI-46)
+         * @description Name, email, phone and enrollment type are required. A MONTHLY student starts on monthlyStartDate, or today when it is not sent; a DROP_IN student must not send it. The email must not belong to any other account.
+         */
+        post: operations["createStudent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A student's profile (CU-02, DI-46) */
+        get: operations["getStudent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Edit a student's name and phone (CU-02, DI-46)
+         * @description At least one of name and phone. The email, the modality and the start date cannot be edited here.
+         */
+        patch: operations["updateStudent"];
+        trace?: never;
+    };
+    "/api/v1/students/{id}/drop-in-bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Book a drop-in class for a drop-in student (RF-09, RF-11, DI-44)
+         * @description The date must fall on the slot's weekday, be at most 3 months ahead, and the lesson must not have started. A drop-in booking never exceeds the slot's capacity.
+         */
+        post: operations["bookDropInClass"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/{id}/drop-in-bookings/{bookingId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel a student's drop-in class (RF-52, DI-44)
+         * @description Only a scheduled drop-in booking of that student, before the lesson starts. It frees the place.
+         */
+        post: operations["cancelDropInClass"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/{id}/fixed-slot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Assign or replace a monthly student's fixed slot (RF-08, DI-27, DI-42, DI-43)
+         * @description Generates the student's fixed bookings from today to the end of the rolling window, even over the slot's capacity: the response lists the future lessons of the slot that end up over capacity. If the student had another slot, its scheduled fixed bookings of lessons that have not started are cancelled (ENROLLMENT_CHANGE). Assigning the same slot again only fills the missing dates.
+         */
+        put: operations["assignFixedSlot"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AssignFixedSlotRequest: {
+            /** Format: int64 */
+            slotId: number;
+        };
+        AssignedSlotResponse: {
+            /**
+             * Format: int32
+             * @description ISO day of the week: 1 is Monday, 7 is Sunday
+             */
+            dayOfWeek: number;
+            /**
+             * @description HH:mm
+             * @example 18:00
+             */
+            endTime: string;
+            /** Format: int64 */
+            id: number;
+            /**
+             * @description HH:mm
+             * @example 18:00
+             */
+            startTime: string;
+        };
         AssistantTeacherResponse: {
             active: boolean;
             email: string;
@@ -159,26 +332,117 @@ export interface components {
             name: string;
             phone: string;
         };
+        BookDropInClassRequest: {
+            /**
+             * Format: date
+             * @description A date on the slot's weekday
+             * @example 2026-12-01
+             */
+            lessonDate: string;
+            /** Format: int64 */
+            slotId: number;
+        };
+        BookingResponse: {
+            /** Format: int64 */
+            id: number;
+            /** Format: date */
+            lessonDate: string;
+            /** Format: int64 */
+            slotId: number;
+            /** @enum {string} */
+            status: "SCHEDULED" | "PRESENT" | "ABSENT" | "ABSENT_RECOVERABLE" | "MADE_UP" | "CANCELLED" | "NOT_RECOVERABLE" | "UNRECORDED";
+            /** @enum {string} */
+            type: "FIXED" | "DROP_IN" | "MAKEUP";
+        };
+        CapacityBelowOccupancyDetails: {
+            lessons: components["schemas"]["LessonOverCapacity"][];
+        };
         CreateAssistantTeacherRequest: {
             /** Format: email */
             email: string;
             name: string;
             phone: string;
         };
+        CreateSlotRequest: {
+            /** Format: int32 */
+            capacity: number;
+            /**
+             * Format: int32
+             * @description ISO day of the week: 1 is Monday, 7 is Sunday
+             */
+            dayOfWeek: number;
+            /**
+             * @description HH:mm
+             * @example 18:00
+             */
+            endTime: string;
+            /**
+             * @description HH:mm
+             * @example 18:00
+             */
+            startTime: string;
+        };
+        CreateStudentRequest: {
+            /** Format: email */
+            email: string;
+            /** @enum {string} */
+            enrollmentType: "MONTHLY" | "DROP_IN";
+            /**
+             * Format: date
+             * @description Only for MONTHLY, where it defaults to today; DROP_IN must not send it
+             * @example 2026-11-02
+             */
+            monthlyStartDate?: string | null;
+            name: string;
+            phone: string;
+        };
         ErrorBody: {
             /** @description Stable identifier in English, for the client */
             code: string;
+            /** @description Only for some codes (DI-23): its shape depends on the code; each endpoint names the schema. */
+            details?: Record<string, never>;
             /** @description Text for the person, in Spanish */
             message: string;
         };
         ErrorResponse: {
             error: components["schemas"]["ErrorBody"];
         };
+        FixedSlotAssignmentResponse: {
+            fixedSlot: components["schemas"]["AssignedSlotResponse"];
+            overbookedLessons: components["schemas"]["OverbookedLessonResponse"][];
+        };
+        FixedSlotResponse: {
+            /**
+             * Format: int32
+             * @description ISO day of the week: 1 is Monday, 7 is Sunday
+             */
+            dayOfWeek: number;
+            /**
+             * @description HH:mm
+             * @example 18:00
+             */
+            endTime: string;
+            /** Format: int64 */
+            id: number;
+            /**
+             * @description HH:mm
+             * @example 18:00
+             */
+            startTime: string;
+        };
         HealthResponse: {
             /** @enum {string} */
             database: "UP" | "DOWN";
             /** @enum {string} */
             status: "UP" | "DOWN";
+        };
+        LessonOverCapacity: {
+            /** Format: date */
+            lessonDate: string;
+            /** Format: int32 */
+            occupancy: number;
+            /** Format: int32 */
+            spotsToFree: number;
         };
         LoginRequest: {
             email: string;
@@ -189,6 +453,14 @@ export interface components {
             /** Format: date-time */
             expiresAt: string;
             user: components["schemas"]["SessionUserResponse"];
+        };
+        OverbookedLessonResponse: {
+            /** Format: int32 */
+            capacity: number;
+            /** Format: date */
+            lessonDate: string;
+            /** Format: int32 */
+            occupancy: number;
         };
         PasswordResetRequest: {
             email: string;
@@ -207,10 +479,141 @@ export interface components {
             newPassword: string;
             token: string;
         };
+        SlotItemResponse: {
+            active: boolean;
+            /** Format: int32 */
+            capacity: number;
+            /**
+             * Format: int32
+             * @description ISO day of the week: 1 is Monday, 7 is Sunday
+             */
+            dayOfWeek: number;
+            /**
+             * @description HH:mm
+             * @example 18:00
+             */
+            endTime: string;
+            /** Format: int64 */
+            id: number;
+            /**
+             * @description HH:mm
+             * @example 18:00
+             */
+            startTime: string;
+            /** @description Lessons not started yet whose occupancy is above the capacity, by date */
+            upcomingOverbookedLessons: components["schemas"]["OverbookedLessonResponse"][];
+        };
+        SlotOverlapDetails: {
+            /** Format: int32 */
+            dayOfWeek: number;
+            /** Format: time-local */
+            endTime: string;
+            /** Format: int64 */
+            slotId: number;
+            /** Format: time-local */
+            startTime: string;
+        };
+        SlotResponse: {
+            active: boolean;
+            /** Format: int32 */
+            capacity: number;
+            /**
+             * Format: int32
+             * @description ISO day of the week: 1 is Monday, 7 is Sunday
+             */
+            dayOfWeek: number;
+            /**
+             * @description HH:mm
+             * @example 18:00
+             */
+            endTime: string;
+            /** Format: int64 */
+            id: number;
+            /**
+             * @description HH:mm
+             * @example 18:00
+             */
+            startTime: string;
+        };
+        StudentItemResponse: {
+            active: boolean;
+            /** @enum {string} */
+            enrollmentType: "MONTHLY" | "DROP_IN";
+            fixedSlot?: components["schemas"]["FixedSlotResponse"] | null;
+            /** Format: int64 */
+            id: number;
+            name: string;
+        };
+        StudentProfileResponse: {
+            active: boolean;
+            email: string;
+            /** @enum {string} */
+            enrollmentType: "MONTHLY" | "DROP_IN";
+            fixedSlot?: components["schemas"]["FixedSlotResponse"] | null;
+            /** Format: int64 */
+            id: number;
+            /**
+             * Format: date
+             * @description Only for MONTHLY students
+             */
+            monthlyStartDate?: string | null;
+            name: string;
+            phone: string;
+            /** @description Scheduled classes that have not started, by date and start time */
+            upcomingLessons: components["schemas"]["UpcomingLessonResponse"][];
+        };
         TokenResponse: {
             accessToken: string;
             /** Format: date-time */
             expiresAt: string;
+        };
+        UpcomingLessonResponse: {
+            /** Format: int64 */
+            bookingId: number;
+            /**
+             * Format: int32
+             * @description ISO day of the week: 1 is Monday, 7 is Sunday
+             */
+            dayOfWeek: number;
+            /**
+             * @description HH:mm
+             * @example 18:00
+             */
+            endTime: string;
+            /** Format: date */
+            lessonDate: string;
+            /** Format: int64 */
+            slotId: number;
+            /**
+             * @description HH:mm
+             * @example 18:00
+             */
+            startTime: string;
+            /** @enum {string} */
+            type: "FIXED" | "DROP_IN" | "MAKEUP";
+        };
+        UpdateSlotRequest: {
+            /** Format: int32 */
+            capacity?: number | null;
+            /**
+             * Format: int32
+             * @description ISO day of the week: 1 is Monday, 7 is Sunday
+             */
+            dayOfWeek?: number | null;
+            /**
+             * @description HH:mm
+             * @example 18:00
+             */
+            endTime?: string | null;
+            /**
+             * @description HH:mm
+             * @example 18:00
+             */
+            startTime?: string | null;
+        };
+        UpdateStudentRequest: {
+            name?: string | null;
+            phone?: string | null;
         };
     };
     responses: never;
@@ -221,7 +624,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    list: {
+    list_1: {
         parameters: {
             query?: {
                 active?: boolean;
@@ -270,7 +673,7 @@ export interface operations {
             };
         };
     };
-    create: {
+    create_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -584,6 +987,658 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
+    };
+    list: {
+        parameters: {
+            query?: {
+                status?: "ACTIVE" | "INACTIVE" | "ALL";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The slots */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SlotItemResponse"][];
+                };
+            };
+            /** @description validation_error: status is not ACTIVE, INACTIVE or ALL */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description role_not_allowed: only the lead teacher */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description too_many_requests: more than 60 requests in a minute from the same user */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateSlotRequest"];
+            };
+        };
+        responses: {
+            /** @description The new slot */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SlotResponse"];
+                };
+            };
+            /** @description validation_error: a field is missing or out of range, or the start is not before the end */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description role_not_allowed: only the lead teacher */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description slot_overlap: details is SlotOverlapDetails */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description too_many_requests: more than 60 requests in a minute from the same user */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The slot */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SlotItemResponse"];
+                };
+            };
+            /** @description role_not_allowed: only the lead teacher */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description not_found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description too_many_requests: more than 60 requests in a minute from the same user */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSlotRequest"];
+            };
+        };
+        responses: {
+            /** @description The slot after the change */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SlotItemResponse"];
+                };
+            };
+            /** @description validation_error: nothing to change, a field out of range, or the start is not before the end */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description role_not_allowed: only the lead teacher */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description not_found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description status_conflict: the slot is inactive. slot_has_bookings: day or time cannot change. slot_overlap: details is SlotOverlapDetails. capacity_below_occupancy: details is CapacityBelowOccupancyDetails */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description too_many_requests: more than 60 requests in a minute from the same user */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    listStudents: {
+        parameters: {
+            query?: {
+                status?: "ACTIVE" | "INACTIVE" | "ALL";
+                enrollmentType?: "MONTHLY" | "DROP_IN";
+                slotId?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The students */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StudentItemResponse"][];
+                };
+            };
+            /** @description validation_error: a filter has an invalid value */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description role_not_allowed: only the lead teacher */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description too_many_requests: more than 60 requests in a minute from the same user */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    createStudent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateStudentRequest"];
+            };
+        };
+        responses: {
+            /** @description The student, created and invited */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StudentProfileResponse"];
+                };
+            };
+            /** @description validation_error: a field is missing or blank, the name has more than 80 characters, the email is malformed, or a DROP_IN student sends a start date */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description role_not_allowed: only the lead teacher */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description email_already_used */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description too_many_requests: more than 60 requests in a minute from the same user */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getStudent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The student */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StudentProfileResponse"];
+                };
+            };
+            /** @description role_not_allowed: only the lead teacher */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description not_found: the id is not a student */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description too_many_requests: more than 60 requests in a minute from the same user */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    updateStudent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateStudentRequest"];
+            };
+        };
+        responses: {
+            /** @description The student, updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StudentProfileResponse"];
+                };
+            };
+            /** @description validation_error: nothing to change, a blank value, a name with more than 80 characters, or a field that cannot be edited */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description role_not_allowed: only the lead teacher */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description not_found: the id is not a student */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description too_many_requests: more than 60 requests in a minute from the same user */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    bookDropInClass: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BookDropInClassRequest"];
+            };
+        };
+        responses: {
+            /** @description The scheduled drop-in booking */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BookingResponse"];
+                };
+            };
+            /** @description validation_error: a field is missing or malformed. invalid_lesson_date: the date is not on the slot's weekday or is more than 3 months ahead */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description role_not_allowed: only the lead teacher */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description not_found: the id is not a student, or the slot does not exist */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description enrollment_type_mismatch: the student is not drop-in. student_inactive. slot_inactive. lesson_already_started. already_booked: the student has an active booking in that lesson. capacity_full: no place left */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description too_many_requests: more than 60 requests in a minute from the same user */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    cancelDropInClass: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+                bookingId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The cancelled booking */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BookingResponse"];
+                };
+            };
+            /** @description role_not_allowed: only the lead teacher */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description not_found: the id is not a student, or the booking does not exist, is another student's or is not a drop-in */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description status_conflict: the booking is not scheduled. lesson_already_started */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description too_many_requests: more than 60 requests in a minute from the same user */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    assignFixedSlot: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignFixedSlotRequest"];
+            };
+        };
+        responses: {
+            /** @description The assigned slot and its overbooked future lessons */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FixedSlotAssignmentResponse"];
+                };
+            };
+            /** @description validation_error: slotId is missing or malformed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description role_not_allowed: only the lead teacher */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description not_found: the id is not a student, or the slot does not exist */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description enrollment_type_mismatch: the student is not monthly. student_inactive. slot_inactive */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description too_many_requests: more than 60 requests in a minute from the same user */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };

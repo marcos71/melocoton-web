@@ -1,0 +1,110 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 60rem;
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.columns {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.plain {
+  margin: 0;
+}
+
+.data {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.25rem 1rem;
+  width: 100%;
+  margin: 0;
+}
+
+.data dt {
+  font-weight: 600;
+}
+
+.data dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.lessons {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 2px solid var(--color-ink);
+  border-radius: 0.5rem;
+}
+
+.lesson {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.lesson + .lesson {
+  border-top: 1px solid var(--color-border);
+}
+
+.lessonMain {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.lessonDate {
+  font-weight: 600;
+}
+
+.started {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+@media (min-width: 48rem) {
+  .columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+    gap: 2rem;
+  }
+}
