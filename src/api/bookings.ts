@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient, type ApiClient } from './client'
 import { callApi } from './errors'
+import { lessonsQueryKey } from './lessons'
 import type { components } from './schema'
 import { slotsQueryKey } from './slots'
 import { studentDetailKey, studentsListKey } from './students'
@@ -18,6 +19,22 @@ export function assignFixedSlot(
     client.PUT('/api/v1/students/{id}/fixed-slot', {
       params: { path: { id: studentId } },
       body: { slotId },
+    }),
+  )
+}
+
+export type DropInRequest = components['schemas']['BookDropInClassRequest']
+
+/** POST /api/v1/students/{id}/drop-in-bookings (CU-04, RF-09). */
+export function createDropInBooking(
+  studentId: number,
+  input: DropInRequest,
+  client: ApiClient = apiClient,
+): Promise<Booking> {
+  return callApi(() =>
+    client.POST('/api/v1/students/{id}/drop-in-bookings', {
+      params: { path: { id: studentId } },
+      body: input,
     }),
   )
 }
@@ -55,6 +72,19 @@ export function useCancelDropInBooking(studentId: number) {
     // Freeing a spot can take a class out of "excedida", so the slots refresh too.
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: studentDetailKey(studentId) })
+      void queryClient.invalidateQueries({ queryKey: slotsQueryKey })
+    },
+  })
+}
+
+export function useCreateDropInBooking(studentId: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: DropInRequest) => createDropInBooking(studentId, input),
+    // Also after a failure: the error usually means the screen had old data (docs 1.5).
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: studentDetailKey(studentId) })
+      void queryClient.invalidateQueries({ queryKey: lessonsQueryKey })
       void queryClient.invalidateQueries({ queryKey: slotsQueryKey })
     },
   })

@@ -166,6 +166,15 @@ describe('RadioCardGroup', () => {
     expect(unavailable).not.toBeChecked()
   })
 
+  it('RF09_aSubtitleIsAlwaysShownUnderTheLabelAndTheReasonStaysTheDescription', () => {
+    const withSubtitle = [{ value: 'a', label: 'Jue 26 de nov', subtitle: '18:00 a 20:00', unavailableReason: 'Completa' }]
+    render(<RadioCardGroup legend="Elegí" options={withSubtitle} value={null} onChange={() => {}} />)
+
+    const radio = screen.getByRole('radio', { name: /18:00 a 20:00/ })
+    expect(radio.closest('label')).toHaveTextContent('Jue 26 de nov18:00 a 20:00Completa')
+    expect(radio).toHaveAccessibleDescription('Completa')
+  })
+
   it('RNF21_showsTheErrorOfTheGroupLinkedToTheFieldset', () => {
     render(
       <RadioCardGroup legend="Modalidad" options={options} value="a" onChange={() => {}} error="Elegí la modalidad." />,

@@ -11,6 +11,7 @@ import { AssistantTeachersScreen } from './screens/AssistantTeachersScreen'
 import { ComingSoonScreen } from './screens/ComingSoonScreen'
 import { ForgotPasswordScreen } from './screens/ForgotPasswordScreen'
 import { HealthScreen } from './screens/HealthScreen'
+import { DropInBookingScreen } from './screens/DropInBookingScreen'
 import { EditStudentScreen } from './screens/EditStudentScreen'
 import { FixedSlotScreen } from './screens/FixedSlotScreen'
 import { LoginScreen } from './screens/LoginScreen'
@@ -29,13 +30,13 @@ const ADMIN_SCREENS: Record<(typeof ADMIN_PATHS)[number], ReactElement> = {
 
 /**
  * Screens of the Alumnos tab beyond the list (DI-46, DI-53): the lead teacher only.
- * TODO(DI-56): register '/students/:id/drop-in/new' (DropInBookingScreen) when GET /lessons exists.
  */
 const STUDENT_SCREENS: Partial<Record<(typeof STUDENT_PATHS)[number], ReactElement>> = {
   '/students/new': <NewStudentScreen />,
   '/students/:id': <StudentProfileScreen />,
   '/students/:id/edit': <EditStudentScreen />,
   '/students/:id/fixed-slot': <FixedSlotScreen />,
+  '/students/:id/drop-in/new': <DropInBookingScreen />,
 }
 
 /** Tabs that already have their screen; the others show the placeholder. */

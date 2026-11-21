@@ -54,6 +54,10 @@
   overflow-wrap: anywhere;
 }
 
+.subtitle {
+  font-weight: 400;
+}
+
 .description {
   font-size: 0.875rem;
   font-weight: 400;
