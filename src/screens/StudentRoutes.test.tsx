@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react'
 import { jsonResponse, renderApp, stubApi } from '../test/utils'
-import { luciaProfile } from '../test/students'
+import { lucasProfile, luciaProfile } from '../test/students'
 
 describe('student routes', () => {
   it('RF02_theAlumnosTabOpensTheListNotThePlaceholder', async () => {
@@ -31,6 +31,7 @@ describe('student routes', () => {
   it.each([
     ['ASSISTANT_TEACHER', '/students/11', '/today', 'Hoy'],
     ['ASSISTANT_TEACHER', '/students/new', '/today', 'Hoy'],
+    ['ASSISTANT_TEACHER', '/students/13/drop-in/new', '/today', 'Hoy'],
     ['STUDENT', '/students/11/fixed-slot', '/home', 'Inicio'],
   ] as const)('RF02_%sCannotOpen_%s', async (role, path, home, title) => {
     const fetchFn = stubApi({})
@@ -41,10 +42,15 @@ describe('student routes', () => {
     expect(fetchFn).not.toHaveBeenCalled()
   })
 
-  it('DI56_theDropInRouteIsNotRegisteredYetSoItGoesHome', async () => {
-    stubApi({ 'GET /api/v1/students/13': () => jsonResponse(200, luciaProfile) })
+  it('DI56_theLeadTeacherOpensTheDropInScreen', async () => {
+    stubApi({
+      'GET /api/v1/students/13': () => jsonResponse(200, lucasProfile),
+      'GET /api/v1/slots': () => jsonResponse(200, []),
+      'GET /api/v1/lessons': () => jsonResponse(200, []),
+    })
     renderApp({ role: 'LEAD_TEACHER', path: '/students/13/drop-in/new' })
 
-    expect(await screen.findByRole('heading', { name: 'Hoy' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Anotar clase suelta' })).toBeInTheDocument()
+    expect(screen.getByTestId('location')).toHaveTextContent('/students/13/drop-in/new')
   })
 })

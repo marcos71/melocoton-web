@@ -209,7 +209,6 @@ function Profile({ student }: { student: StudentProfile }) {
 
           {dropIn &&
             (student.active ? (
-              // TODO(DI-56): the route is registered when GET /lessons exists.
               <Link
                 className={screenStyles.button}
                 to={`/students/${student.id}/drop-in/new`}

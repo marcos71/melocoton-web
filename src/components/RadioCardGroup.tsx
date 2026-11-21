@@ -4,6 +4,8 @@ import styles from './RadioCardGroup.module.css'
 export type RadioCardOption<T extends string> = {
   value: T
   label: string
+  /** A line under the label that is always shown, for example "18:00 a 20:00". */
+  subtitle?: string
   /** Secondary line, for example "Cupo: 8". */
   description?: string
   /** Why the option cannot be chosen; also makes it unavailable. */
@@ -68,6 +70,9 @@ export function RadioCardGroup<T extends string>({
             />
             <span className={styles.texts}>
               <span className={styles.label}>{option.label}</span>
+              {option.subtitle !== undefined && (
+                <span className={styles.subtitle}>{option.subtitle}</span>
+              )}
               {hasDetail && (
                 <span id={detailId} className={styles.description}>
                   {option.unavailableReason ?? option.description}

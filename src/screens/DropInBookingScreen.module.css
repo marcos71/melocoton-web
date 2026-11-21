@@ -1,0 +1,10 @@
+/* Phone: the button fills the width like the action buttons; wide screens size it to its text. */
+.more {
+  align-self: stretch;
+}
+
+@media (min-width: 48rem) {
+  .more {
+    align-self: flex-start;
+  }
+}
