@@ -1,5 +1,5 @@
-import { Link } from 'react-router'
 import { useHealthQuery, type HealthResponse } from '../api/health'
+import { useBackTarget } from '../layout/backTarget'
 import screenStyles from './Screen.module.css'
 import styles from './HealthScreen.module.css'
 
@@ -17,13 +17,11 @@ const DATABASE_STATUS_TEXT: Record<Status, string> = {
 
 /** Checks the connection with melocoton-api through GET /api/v1/health. */
 export function HealthScreen() {
+  useBackTarget({ to: '/', label: 'Inicio' })
   const health = useHealthQuery()
 
   return (
     <section className={screenStyles.screen}>
-      <Link className={screenStyles.link} to="/">
-        <span aria-hidden="true">← </span>Volver al inicio
-      </Link>
       <h1 className={screenStyles.title}>Estado de la conexión</h1>
 
       {health.isPending && <p role="status">Consultando el estado de la API…</p>}

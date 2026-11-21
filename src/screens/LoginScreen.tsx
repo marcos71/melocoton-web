@@ -78,10 +78,10 @@ export function LoginScreen() {
         </button>
       </form>
 
-      <Link className={styles.link} to="/forgot-password">
+      <Link className={styles.secondaryButton} to="/forgot-password">
         ¿Olvidaste tu contraseña?
       </Link>
-      <Link className={styles.smallLink} to="/health">
+      <Link className={styles.secondaryButton} to="/health">
         Estado de la conexión
       </Link>
     </section>

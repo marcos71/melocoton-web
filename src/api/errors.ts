@@ -14,18 +14,28 @@ export const UNEXPECTED_RESPONSE = 'unexpected_response'
 export class ApiError extends Error {
   readonly status: number
   readonly code: string
+  /** Only for `network_error`: the call never arrived, or it was cut off waiting for the answer. */
+  readonly reason?: NetworkReason
 
-  constructor(status: number, code: string, message: string, options?: { cause?: unknown }) {
+  constructor(
+    status: number,
+    code: string,
+    message: string,
+    options?: { cause?: unknown; reason?: NetworkReason },
+  ) {
     super(message, options)
     this.name = 'ApiError'
     this.status = status
     this.code = code
+    this.reason = options?.reason
   }
 }
 
 const errorResponseSchema = z.object({
   error: z.object({ code: z.string(), message: z.string() }),
 }) satisfies z.ZodType<ErrorResponse>
+
+export type NetworkReason = 'unreachable' | 'timeout'
 
 /** Builds an ApiError from an HTTP error response body. */
 export function toApiError(status: number, body: unknown): ApiError {
@@ -42,17 +52,17 @@ export function toApiError(status: number, body: unknown): ApiError {
 
 type RawResult<T> = { data?: T; error?: unknown; response: Response }
 
-const NETWORK_MESSAGES = {
+const NETWORK_MESSAGES: Record<NetworkReason, string> = {
   unreachable: 'No se pudo conectar con la API. Revisá la conexión o que la API esté en marcha.',
   timeout: 'La API tardó demasiado en responder. Revisá la conexión e intentá de nuevo.',
-} as const
+}
 
 /** A call that never got an answer: the server was unreachable or took too long. */
 export function networkError(
   cause: unknown,
-  reason: keyof typeof NETWORK_MESSAGES = 'unreachable',
+  reason: NetworkReason = 'unreachable',
 ): ApiError {
-  return new ApiError(0, NETWORK_ERROR, NETWORK_MESSAGES[reason], { cause })
+  return new ApiError(0, NETWORK_ERROR, NETWORK_MESSAGES[reason], { cause, reason })
 }
 
 function isTimeout(cause: unknown): boolean {

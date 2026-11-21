@@ -51,18 +51,22 @@ export function seedSession({
  * - `role` (default STUDENT) starts a session for that role: it stores a token
  *   and answers GET /auth/session; every other call goes to the fetch stub the
  *   test installed before. Wait for the home screen with `findBy...`.
+ * - `state` is the router state of the first entry (for example a notice from another screen).
  * - `role: null` starts without touching the token store or fetch, so a test
  *   can set up anonymous or unusual starts (use `seedSession`).
  */
 export function renderApp({
   role = 'STUDENT',
   path = '/',
+  state,
   queryClient = createTestQueryClient(),
   now,
   refreshedAt,
 }: {
   role?: Role | null
   path?: string
+  /** Router state of the first entry, as a previous screen would have left it. */
+  state?: unknown
   queryClient?: QueryClient
   now?: () => Date
   refreshedAt?: string
@@ -80,13 +84,18 @@ export function renderApp({
   return render(
     <QueryClientProvider client={queryClient}>
       <SessionProvider now={now}>
-        <MemoryRouter initialEntries={[path]}>
+        <MemoryRouter initialEntries={[{ ...parsePath(path), state }]}>
           <LocationProbe />
           <AppRoutes />
         </MemoryRouter>
       </SessionProvider>
     </QueryClientProvider>,
   )
+}
+
+function parsePath(path: string): { pathname: string; search: string; hash: string } {
+  const { pathname, search, hash } = new URL(path, 'http://localhost')
+  return { pathname, search, hash }
 }
 
 /** Exposes the current location to the tests, as `data-testid="location"`. */

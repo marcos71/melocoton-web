@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { useCreateAssistantTeacher } from '../api/assistantTeachers'
 import { ApiError, errorMessage } from '../api/errors'
 import { TextField } from '../components/TextField'
+import { useBackTarget } from '../layout/backTarget'
 import { zodResolver } from '@hookform/resolvers/zod'
 import styles from './Screen.module.css'
 
@@ -22,6 +23,7 @@ type NewTeacherValues = z.infer<typeof newTeacherSchema>
 
 /** CU-02 D1: create an assistant teacher; the API sends the invitation email (RF-53). */
 export function NewAssistantTeacherScreen() {
+  useBackTarget({ to: '/admin/assistant-teachers', label: 'Docentes' })
   const navigate = useNavigate()
   const create = useCreateAssistantTeacher()
   const [apiError, setApiError] = useState<string | null>(null)
@@ -92,7 +94,7 @@ export function NewAssistantTeacherScreen() {
           <button type="submit" className={styles.button} disabled={isSubmitting}>
             {isSubmitting ? 'Creando…' : 'Crear y enviar invitación'}
           </button>
-          <Link className={styles.link} to="/admin/assistant-teachers">
+          <Link className={styles.secondaryButton} to="/admin/assistant-teachers">
             Cancelar
           </Link>
         </div>

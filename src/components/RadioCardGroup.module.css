@@ -1,0 +1,75 @@
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  padding: 0;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  border: 2px solid var(--color-border);
+  border-radius: 0.5rem;
+}
+
+.card:has(input:checked) {
+  border-color: var(--color-ink);
+  font-weight: 700;
+}
+
+.card input {
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: 0.125rem 0 0;
+  accent-color: var(--color-ink);
+}
+
+.texts {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.label {
+  overflow-wrap: anywhere;
+}
+
+.description {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+/* An option that cannot be chosen: dotted border and its reason in text. */
+.unavailable {
+  cursor: not-allowed;
+  border-style: dashed;
+  color: var(--color-text-muted);
+}
+
+.error {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-error);
+}

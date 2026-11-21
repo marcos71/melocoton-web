@@ -1,0 +1,30 @@
+.readOnly {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0;
+}
+
+.readOnly dt {
+  font-weight: 600;
+}
+
+.readOnly dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-height: 1.5rem;
+}
+
+.summary p {
+  margin: 0;
+}
+
+.summaryTitle {
+  font-weight: 700;
+}

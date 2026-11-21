@@ -53,7 +53,7 @@ export function SetPasswordScreen() {
           <p>
             <strong>Error:</strong> El enlace no es válido. Pedí uno nuevo.</p>
         </div>
-        <Link className={styles.link} to="/forgot-password">
+        <Link className={styles.secondaryButton} to="/forgot-password">
           Pedir un enlace nuevo
         </Link>
       </section>
@@ -116,7 +116,7 @@ export function SetPasswordScreen() {
               <strong>Error:</strong> {failure.message}
             </p>
             {failure.expired && (
-              <Link className={styles.link} to="/forgot-password">
+              <Link className={styles.secondaryButton} to="/forgot-password">
                 Pedir un enlace nuevo
               </Link>
             )}

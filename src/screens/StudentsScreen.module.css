@@ -1,0 +1,242 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 60rem;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.search {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.search > :first-child {
+  flex: 1;
+}
+
+.clear {
+  flex: none;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  font: inherit;
+  color: var(--color-ink);
+  background: var(--color-paper);
+  border: 2px solid var(--color-ink);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.slotFilter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.slotsError {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.linkButton {
+  min-height: 2.75rem;
+  padding: 0 0.25rem;
+  font: inherit;
+  color: var(--color-ink);
+  text-decoration: underline;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.count {
+  margin: 0;
+  min-height: 1.5rem;
+  font-weight: 600;
+}
+
+.skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.skeleton {
+  height: 4rem;
+  background: var(--color-surface-muted);
+  border-radius: 0.5rem;
+}
+
+.splash {
+  width: 3rem;
+  height: 3rem;
+  fill: var(--color-gold);
+}
+
+.emptyText {
+  margin: 0 0 0.5rem;
+}
+
+/*
+ * The list is a real table; on a phone each row becomes a card.
+ *
+ * Specificity matters here: the base rules below describe the desktop table with single-class
+ * selectors, and the phone rules live in a max-width media query with single-class selectors too,
+ * so the later one wins by order and not by accident. Never use `.table tr` / `.table td`
+ * (0,1,1) in one branch and `.row` (0,1,0) in the other: the descendant selector always wins
+ * and the row's `display` never applies.
+ */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.headCell {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 2px solid var(--color-ink);
+}
+
+.cell {
+  padding: 0.25rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.row:hover {
+  background: var(--color-surface-muted);
+}
+
+.rowLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.row:focus-within {
+  outline: 3px solid var(--color-ink);
+  outline-offset: -3px;
+}
+
+.rowLink:focus-visible {
+  outline: none;
+}
+
+@media (min-width: 48rem) {
+  .header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .filters {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+
+  .filters > * {
+    flex: 1 1 12rem;
+  }
+}
+
+/* Phone: every student is a full-width touchable card. */
+@media (max-width: 47.999rem) {
+  .table,
+  .body,
+  .row,
+  .cell {
+    display: block;
+  }
+
+  /* The headers stay for screen readers only. */
+  .head {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  /* Line 1: name and status. Line 2: modality · fixed slot. */
+  .row {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      'name name state'
+      'kind turn turn';
+    align-items: center;
+    column-gap: 0.375rem;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 1rem;
+    border: 2px solid var(--color-ink);
+    border-radius: 0.5rem;
+  }
+
+  .row:hover {
+    background: none;
+  }
+
+  .cell {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .nameCell {
+    grid-area: name;
+  }
+
+  .state {
+    grid-area: state;
+    justify-self: end;
+  }
+
+  .kind {
+    grid-area: kind;
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+  }
+
+  .turn {
+    grid-area: turn;
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+  }
+
+  .turn:not(:empty)::before {
+    content: '· ';
+  }
+
+  /* The whole card is touchable, but the real link is the name (a row with onClick is not keyboard-accessible). */
+  .rowLink::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .row:focus-within {
+    outline-offset: 2px;
+  }
+}

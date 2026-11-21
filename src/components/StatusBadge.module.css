@@ -1,0 +1,18 @@
+.badge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+  color: var(--color-ink);
+  background: var(--color-paper);
+  border: 2px solid var(--color-ink);
+  border-radius: 1rem;
+}
+
+.filled {
+  color: var(--color-text-muted);
+  background: var(--color-surface-muted);
+  border-color: var(--color-text-muted);
+}
