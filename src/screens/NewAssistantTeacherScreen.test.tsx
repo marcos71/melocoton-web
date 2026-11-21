@@ -54,7 +54,7 @@ describe('NewAssistantTeacherScreen', () => {
     expect(screen.getByText('Ingresá el nombre.')).toBeInTheDocument()
     expect(screen.getByText('Ingresá el email.')).toBeInTheDocument()
     expect(screen.getByText('Ingresá el teléfono.')).toBeInTheDocument()
-    expect(screen.getByLabelText('Nombre')).toHaveAccessibleDescription('Ingresá el nombre.')
+    expect(screen.getByLabelText('Nombre')).toHaveAccessibleDescription('Error: Ingresá el nombre.')
     expect(fetchFn).not.toHaveBeenCalled()
   })
 
@@ -80,7 +80,7 @@ describe('NewAssistantTeacherScreen', () => {
     const email = screen.getByLabelText('Email')
     expect(await screen.findByText('Ese email ya pertenece a otra cuenta.')).toBeInTheDocument()
     expect(email).toHaveAttribute('aria-invalid', 'true')
-    expect(email).toHaveAccessibleDescription('Ese email ya pertenece a otra cuenta.')
+    expect(email).toHaveAccessibleDescription('Error: Ese email ya pertenece a otra cuenta.')
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 

@@ -24,7 +24,8 @@ function SessionCheckFailed() {
   return (
     <div className={screenStyles.fullScreen}>
       <div role="alert" className={screenStyles.alert}>
-        <p className={screenStyles.alertTitle}>No se pudo verificar tu sesión.</p>
+        <p className={screenStyles.alertTitle}>
+          Error: No se pudo verificar tu sesión.</p>
         <p>{error?.message}</p>
       </div>
       <button type="button" className={screenStyles.button} onClick={retry}>

@@ -37,7 +37,7 @@ describe('HealthScreen', () => {
     renderApp({ path: '/health', role: null })
 
     expect(
-      await screen.findByText('✕ La API responde, pero algo no está funcionando.'),
+      await screen.findByText('Error: La API responde, pero algo no está funcionando.'),
     ).toBeInTheDocument()
     expect(screen.getByText('Con problemas')).toBeInTheDocument()
     expect(screen.getByText('Sin conexión')).toBeInTheDocument()

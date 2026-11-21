@@ -1,0 +1,23 @@
+.filters {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.filter {
+  flex: 1;
+  min-height: 2.75rem;
+  padding: 0 0.5rem;
+  font: inherit;
+  color: var(--color-ink);
+  background: var(--color-paper);
+  border: 2px solid var(--color-ink);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+/* Pressed filter: bold and inverted, not only color. */
+.pressed {
+  font-weight: 800;
+  color: var(--color-paper);
+  background: var(--color-ink);
+}

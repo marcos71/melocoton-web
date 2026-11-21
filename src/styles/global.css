@@ -1,20 +1,22 @@
+/* DI-47: black and white as the base, gold only as a detail. See docs/diseno_visual.md.
+   Every color in the app comes from one of these tokens. */
 :root {
-  --color-surface: #ffffff;
-  --color-page: #fff4e8;
-  --color-text: #1d1b19;
-  --color-text-muted: #55504a;
-  --color-border: #9a948d;
-  --color-border-strong: #1d1b19;
-  --color-accent: #c8693a;
-  --color-active: #fde3cf;
-  --color-notice: #fff7d6;
-  --color-ok: #2e7d32;
+  --color-ink: #111111;
+  --color-paper: #ffffff;
+  --color-text-muted: #555555;
+  --color-border: #8a8a8a;
+  --color-surface-muted: #f2f2f2;
+  /* Only on --color-ink or as decoration: 2.4 to 1 on white. */
+  --color-gold: #c9a24a;
+  /* Gold that has to be read on white. */
+  --color-gold-text: #8a6a24;
+  /* Always together with the word "Error". */
   --color-error: #b3261e;
 
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.5;
-  color: var(--color-text);
-  background: var(--color-page);
+  color: var(--color-ink);
+  background: var(--color-paper);
   -webkit-text-size-adjust: 100%;
 }
 
@@ -28,8 +30,8 @@ body {
   margin: 0;
 }
 
-/* RNF-21: visible focus. */
+/* RNF-21: visible focus, black, 3 px. */
 :focus-visible {
-  outline: 3px solid var(--color-accent);
+  outline: 3px solid var(--color-ink);
   outline-offset: 2px;
 }

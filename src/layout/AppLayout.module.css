@@ -4,7 +4,7 @@
   min-height: 100dvh;
   max-width: 40rem;
   margin: 0 auto;
-  background: var(--color-surface);
+  background: var(--color-paper);
 }
 
 .appBar {
@@ -15,7 +15,7 @@
   min-height: 3.25rem;
   padding: 0.5rem 1rem;
   padding-top: max(0.5rem, env(safe-area-inset-top));
-  border-bottom: 2px solid var(--color-border-strong);
+  border-bottom: 2px solid var(--color-ink);
 }
 
 .brand {
@@ -32,8 +32,7 @@
   position: sticky;
   bottom: 0;
   display: flex;
-  border-top: 2px solid var(--color-border-strong);
-  background: var(--color-surface);
+  background: var(--color-ink);
   padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -47,7 +46,7 @@
   min-height: 3.5rem;
   padding: 0.375rem 0.125rem;
   font-size: 0.75rem;
-  color: var(--color-text-muted);
+  color: var(--color-paper);
   text-align: center;
   text-decoration: none;
   border-top: 4px solid transparent;
@@ -60,12 +59,16 @@
   border-radius: 3px;
 }
 
-/* Active tab: bold text and a top bar, not only color (8.3). */
+/* The bar is black, so the focus ring is white there. */
+.tab:focus-visible {
+  outline-color: var(--color-paper);
+  outline-offset: -4px;
+}
+
+/* Active tab: bold text, a filled icon and a gold top bar, not only color (8.3). */
 .active {
   font-weight: 800;
-  color: var(--color-text);
-  border-top-color: var(--color-accent);
-  background: var(--color-active);
+  border-top-color: var(--color-gold);
 }
 
 .active .tabIcon {
