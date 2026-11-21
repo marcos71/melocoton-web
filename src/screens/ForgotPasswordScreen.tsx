@@ -71,7 +71,7 @@ export function ForgotPasswordScreen() {
         </>
       )}
 
-      <Link className={styles.link} to="/login">
+      <Link className={styles.secondaryButton} to="/login">
         Volver a ingresar
       </Link>
     </section>

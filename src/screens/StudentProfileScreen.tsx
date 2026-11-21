@@ -9,6 +9,7 @@ import { DisabledReason } from '../components/DisabledReason'
 import { Notice } from '../components/Notice'
 import { PhoneLink } from '../components/PhoneLink'
 import { StatusBadge } from '../components/StatusBadge'
+import { useBackTarget } from '../layout/backTarget'
 import {
   bookingTypeLabel,
   enrollmentLabel,
@@ -76,6 +77,7 @@ function Profile({ student }: { student: StudentProfile }) {
   const slots = useActiveSlotsQuery({ enabled: monthly && student.active && !student.fixedSlot })
 
   const listUrl = listFromState(location.state)
+  useBackTarget({ to: listUrl ?? '/students', label: 'Alumnos' })
   const childState: StudentNavState = listUrl ? { from: listUrl } : {}
   const lessons = student.upcomingLessons
   const shown = wide || expanded ? lessons : lessons.slice(0, VISIBLE_LESSONS)
@@ -100,9 +102,6 @@ function Profile({ student }: { student: StudentProfile }) {
 
   return (
     <section className={styles.page}>
-      <Link className={screenStyles.link} to={listUrl ?? '/students'}>
-        <span aria-hidden="true">‹ </span>Alumnos
-      </Link>
       <div className={styles.titleBlock}>
         <h1 ref={headingRef} tabIndex={-1} className={screenStyles.title}>
           {student.name}
@@ -177,7 +176,7 @@ function Profile({ student }: { student: StudentProfile }) {
                       label="Asignar turno fijo"
                       reason="Todavía no hay turnos. Crealos en Turnos."
                     >
-                      <Link className={screenStyles.link} to="/slots">
+                      <Link className={screenStyles.secondaryButton} to="/slots">
                         Ir a Turnos
                       </Link>
                     </DisabledReason>

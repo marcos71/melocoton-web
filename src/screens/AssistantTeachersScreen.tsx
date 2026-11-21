@@ -10,6 +10,7 @@ import { errorMessage } from '../api/errors'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { QueryError } from '../components/QueryError'
 import { StatusFilter } from '../components/StatusFilter'
+import { useBackTarget } from '../layout/backTarget'
 import screenStyles from './Screen.module.css'
 import styles from './AssistantTeachersScreen.module.css'
 
@@ -34,6 +35,7 @@ function messageFromRouterState(state: unknown): string | null {
 
 /** CU-02 D1 and D1a: list, filter and deactivate assistant teachers (RF-53). */
 export function AssistantTeachersScreen() {
+  useBackTarget({ to: '/admin', label: 'Ajustes' })
   const location = useLocation()
   const [params, setParams] = useSearchParams()
   const raw = params.get('status')
@@ -64,9 +66,6 @@ export function AssistantTeachersScreen() {
 
   return (
     <section className={screenStyles.screen}>
-      <Link className={screenStyles.link} to="/admin">
-        <span aria-hidden="true">← </span>Ajustes
-      </Link>
       <h1 className={screenStyles.title}>Docentes secundarios</h1>
 
       <Link className={screenStyles.button} to="/admin/assistant-teachers/new">

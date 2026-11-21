@@ -61,7 +61,7 @@ describe('FixedSlotScreen: assign', () => {
     expect(action).toHaveAttribute('aria-disabled', 'true')
     expect(action).toHaveAccessibleDescription('Elegí un turno.')
     expect(screen.getByRole('link', { name: 'Cancelar' })).toHaveAttribute('href', '/students/12')
-    expect(screen.getByRole('link', { name: /Ficha de Luis Gómez/ })).toHaveAttribute('href', '/students/12')
+    expect(screen.getByRole('link', { name: 'Volver a Ficha' })).toHaveAttribute('href', '/students/12')
     expect(requestsTo(fetchFn, PUT_12)).toHaveLength(0)
   })
 
@@ -214,7 +214,7 @@ describe('FixedSlotScreen: assign', () => {
     await waitFor(() =>
       expect(screen.getByRole('alert')).toHaveTextContent('Error: No encontramos a este alumno.'),
     )
-    expect(screen.getByRole('link', { name: 'Volver a Alumnos' })).toBeInTheDocument()
+    expect(within(screen.getByRole('main')).getByRole('link', { name: 'Volver a Alumnos' })).toBeInTheDocument()
   })
 
   it.each([
@@ -340,7 +340,10 @@ describe('FixedSlotScreen: change', () => {
     await userEvent.click(await screen.findByRole('link', { name: 'Cancelar' }))
 
     await screen.findByRole('heading', { name: 'Lucía Pérez' })
-    expect(screen.getByRole('main').querySelector('a[href="/students?q=lu"]')).not.toBeNull()
+    expect(screen.getByRole('link', { name: 'Volver a Alumnos' })).toHaveAttribute(
+      'href',
+      '/students?q=lu',
+    )
   })
 })
 
@@ -351,7 +354,7 @@ describe('FixedSlotScreen: states', () => {
 
     expect(await screen.findByText('Solo un alumno mensual tiene turno fijo.')).toBeInTheDocument()
     expect(screen.queryByRole('radio')).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Ficha de Lucas Díaz/ })).toHaveAttribute('href', '/students/13')
+    expect(screen.getByRole('link', { name: 'Volver a Ficha' })).toHaveAttribute('href', '/students/13')
   })
 
   it('RF08_anInactiveStudentGetsTheReasonInsteadOfTheForm', async () => {

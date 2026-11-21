@@ -8,6 +8,7 @@
 .title {
   margin: 0;
   font-size: 1.375rem;
+  overflow-wrap: anywhere;
 }
 
 .empty {
@@ -134,24 +135,39 @@
   background: var(--color-paper);
 }
 
-.link {
-  display: inline-flex;
-  align-items: center;
-  align-self: flex-start;
-  min-height: 2.75rem;
-  color: var(--color-ink);
-}
-
-.smallLink {
-  composes: link;
-  font-size: 0.875rem;
-}
-
 .actions {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 1rem;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Phone (DI-52): full-width buttons stacked, the action first in the DOM so it goes on top. */
+.actions > * {
+  align-self: stretch;
+}
+
+/* A disabled action is a wrapper around its button and its reason: the button fills it. */
+.actions > div {
+  align-items: stretch;
+}
+
+/* Wide screens: one row, the safe option (Cancelar, last in the DOM) on the left. */
+@media (min-width: 48rem) {
+  .actions {
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .actions > * {
+    align-self: auto;
+  }
+
+  /* Only the disabled-action wrapper aligns its children to the start; buttons keep centering their label. */
+  .actions > div {
+    align-items: flex-start;
+  }
 }
 
 .menuList {

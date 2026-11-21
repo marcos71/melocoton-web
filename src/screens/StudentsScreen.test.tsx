@@ -57,6 +57,23 @@ describe('StudentsScreen', () => {
     expect(param(requestsTo(fetchFn, SLOTS)[0], 'status')).toBe('ACTIVE')
   })
 
+  it('RF04_eachRowKeepsTheNameModalitySlotAndStatusInSeparateCells', async () => {
+    stubApi({ [LIST]: () => jsonResponse(200, [luciaItem]), [SLOTS]: () => jsonResponse(200, []) })
+    renderList()
+
+    await screen.findByRole('link', { name: /Lucía Pérez/ })
+    const headers = screen.getAllByRole('columnheader').map((header) => header.textContent)
+    expect(headers).toEqual(['Nombre', 'Modalidad', 'Turno fijo', 'Estado'])
+    const [, row] = screen.getAllByRole('row')
+    const cells = within(row as HTMLElement).getAllByRole('cell')
+    expect(cells.map((cell) => cell.textContent)).toEqual([
+      'Lucía Pérez',
+      'Mensual',
+      'Martes 18:00 a 20:00',
+      'Activo',
+    ])
+  })
+
   it('RF04_anInactiveStudentIsLabelledInactivoWithText', async () => {
     stubApi({ [LIST]: () => jsonResponse(200, [brunoItem]), [SLOTS]: () => jsonResponse(200, []) })
     renderList('/students?status=inactive')
@@ -272,7 +289,7 @@ describe('StudentsScreen', () => {
     await userEvent.click(await screen.findByRole('link', { name: /Lucía Pérez/ }))
 
     await screen.findByRole('heading', { name: 'Lucía Pérez' })
-    const back = within(screen.getByRole('main')).getByRole('link', { name: 'Alumnos' })
+    const back = screen.getByRole('link', { name: 'Volver a Alumnos' })
     expect(back).toHaveAttribute('href', '/students?status=all&type=monthly')
   })
 })

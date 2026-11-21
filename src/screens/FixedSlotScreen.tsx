@@ -9,6 +9,7 @@ import { getStudent, studentDetailKey, useStudentQuery, type StudentProfile } fr
 import { DisabledReason } from '../components/DisabledReason'
 import { QueryError } from '../components/QueryError'
 import { RadioCardGroup, type RadioCardOption } from '../components/RadioCardGroup'
+import { useBackTarget } from '../layout/backTarget'
 import {
   bySlotTime,
   dayName,
@@ -65,16 +66,11 @@ function FixedSlotForm({ student }: { student: StudentProfile }) {
   const current = student.fixedSlot ?? null
   const replacing = current !== null
 
-  const back = (
-    <Link className={styles.link} to={`/students/${student.id}`} state={profileState}>
-      <span aria-hidden="true">‹ </span>Ficha de {student.name}
-    </Link>
-  )
+  useBackTarget({ to: `/students/${student.id}`, label: 'Ficha', state: profileState })
 
   if (student.enrollmentType !== 'MONTHLY' || !student.active) {
     return (
       <section className={styles.screen}>
-        {back}
         <h1 ref={headingRef} tabIndex={-1} className={styles.title}>
           Turno fijo
         </h1>
@@ -152,7 +148,6 @@ function FixedSlotForm({ student }: { student: StudentProfile }) {
 
   return (
     <section className={styles.screen}>
-      {back}
       <h1 ref={headingRef} tabIndex={-1} className={styles.title}>
         {title}
       </h1>
@@ -219,7 +214,7 @@ function FixedSlotForm({ student }: { student: StudentProfile }) {
             </p>
           )}
 
-          <div className={formStyles.actions}>
+          <div className={styles.actions}>
             {selected ? (
               <button type="submit" className={styles.button} disabled={assign.isPending}>
                 {assign.isPending ? pendingLabel : actionLabel}
@@ -227,7 +222,11 @@ function FixedSlotForm({ student }: { student: StudentProfile }) {
             ) : (
               <DisabledReason primary label={actionLabel} reason="Elegí un turno." />
             )}
-            <Link className={styles.link} to={`/students/${student.id}`} state={profileState}>
+            <Link
+              className={styles.secondaryButton}
+              to={`/students/${student.id}`}
+              state={profileState}
+            >
               Cancelar
             </Link>
           </div>

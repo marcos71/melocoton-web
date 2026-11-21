@@ -283,20 +283,28 @@ export function StudentsScreen() {
 
       {students.isSuccess && visible.length > 0 && (
         <table className={styles.table}>
-          <thead>
+          <thead className={styles.head}>
             <tr>
-              <th scope="col">Nombre</th>
-              <th scope="col">Modalidad</th>
-              <th scope="col">Turno fijo</th>
-              <th scope="col">Estado</th>
+              <th scope="col" className={styles.headCell}>
+                Nombre
+              </th>
+              <th scope="col" className={styles.headCell}>
+                Modalidad
+              </th>
+              <th scope="col" className={styles.headCell}>
+                Turno fijo
+              </th>
+              <th scope="col" className={styles.headCell}>
+                Estado
+              </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className={styles.body}>
             {visible.map((student) => {
               const turn = turnText(student)
               return (
                 <tr key={student.id} className={styles.row}>
-                  <td className={styles.nameCell}>
+                  <td className={`${styles.cell} ${styles.nameCell}`}>
                     <Link
                       className={styles.rowLink}
                       to={`/students/${student.id}`}
@@ -306,11 +314,11 @@ export function StudentsScreen() {
                       {student.name}
                     </Link>
                   </td>
-                  <td className={styles.kind}>{enrollmentLabel(student.enrollmentType)}</td>
-                  <td className={styles.turn}>
+                  <td className={`${styles.cell} ${styles.kind}`}>{enrollmentLabel(student.enrollmentType)}</td>
+                  <td className={`${styles.cell} ${styles.turn}`}>
                     {turn === 'Sin turno fijo' ? <strong>{turn}</strong> : turn}
                   </td>
-                  <td className={styles.state}>
+                  <td className={`${styles.cell} ${styles.state}`}>
                     <StatusBadge variant={student.active ? 'outline' : 'filled'}>
                       {student.active ? 'Activo' : 'Inactivo'}
                     </StatusBadge>

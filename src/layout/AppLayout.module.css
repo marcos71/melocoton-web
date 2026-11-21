@@ -23,8 +23,46 @@
   font-size: 1.125rem;
 }
 
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 2.75rem;
+  /* Pulls the chevron to the gutter's edge; the touch area keeps its full size. */
+  margin-left: -0.5rem;
+  padding: 0 0.75rem 0 0.25rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  text-decoration: none;
+  border-radius: 0.5rem;
+  /* A shrinking flex item: a long label is cut with an ellipsis instead of pushing the bar wider. */
+  min-width: 0;
+}
+
+.back:hover {
+  background: var(--color-surface-muted);
+}
+
+.backIcon {
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.backLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .content {
   flex: 1;
+  min-width: 0;
   padding: 1rem;
 }
 

@@ -353,7 +353,7 @@ describe('StudentProfileScreen: states', () => {
     const alert = await screen.findByRole('alert')
     expect(alert).toHaveTextContent('Error: No encontramos a este alumno.')
     expect(screen.queryByRole('button', { name: 'Reintentar' })).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Volver a Alumnos' })).toHaveAttribute('href', '/students')
+    expect(within(screen.getByRole('main')).getByRole('link', { name: 'Volver a Alumnos' })).toHaveAttribute('href', '/students')
     expect(requestsTo(fetchFn, 'GET /api/v1/students/99')).toHaveLength(1)
   })
 
@@ -401,7 +401,7 @@ describe('StudentProfileScreen: states', () => {
     renderProfile(11, { state: { from: '/students?status=all&q=lu' } })
 
     await screen.findByRole('heading', { name: 'Lucía Pérez' })
-    const back = within(screen.getByRole('main')).getByRole('link', { name: 'Alumnos' })
+    const back = screen.getByRole('link', { name: 'Volver a Alumnos' })
     expect(back).toHaveAttribute('href', '/students?status=all&q=lu')
   })
 
@@ -410,7 +410,7 @@ describe('StudentProfileScreen: states', () => {
     renderProfile(11)
 
     await screen.findByRole('heading', { name: 'Lucía Pérez' })
-    expect(within(screen.getByRole('main')).getByRole('link', { name: 'Alumnos' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Volver a Alumnos' })).toHaveAttribute(
       'href',
       '/students',
     )
@@ -424,6 +424,12 @@ describe('StudentProfileScreen: states', () => {
     await userEvent.click(screen.getByRole('link', { name: 'Editar datos' }))
 
     expect(await screen.findByRole('heading', { name: 'Editar datos' })).toBeInTheDocument()
-    expect(within(screen.getByRole('main')).getAllByRole('link', { name: /Ficha de Lucía Pérez/ })).toHaveLength(1)
+    await userEvent.click(screen.getByRole('link', { name: 'Volver a Ficha' }))
+
+    await screen.findByRole('heading', { name: 'Lucía Pérez' })
+    expect(screen.getByRole('link', { name: 'Volver a Alumnos' })).toHaveAttribute(
+      'href',
+      '/students?q=lu',
+    )
   })
 })

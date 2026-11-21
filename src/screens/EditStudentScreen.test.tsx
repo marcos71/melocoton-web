@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { errorResponse, jsonResponse, renderApp, requestsTo, stubApi } from '../test/utils'
 import { brunoProfile, luciaProfile } from '../test/students'
@@ -30,7 +30,7 @@ describe('EditStudentScreen', () => {
     expect(screen.getByText('lucia@ejemplo.com')).toBeInTheDocument()
     expect(screen.getByText('Mensual')).toBeInTheDocument()
     expect(screen.getByText('El email y la modalidad no se cambian desde acá.')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Ficha de Lucía Pérez/ })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Volver a Ficha' })).toHaveAttribute(
       'href',
       '/students/11',
     )
@@ -71,7 +71,10 @@ describe('EditStudentScreen', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Listo: Guardamos los cambios.')
     expect(await body(requestsTo(fetchFn, PATCH)[0])).toEqual({ phone: '11 4444-0000' })
     // The list URL travels back to the profile.
-    expect(screen.getByRole('main').querySelector('a[href="/students?q=lu"]')).not.toBeNull()
+    expect(await screen.findByRole('link', { name: 'Volver a Alumnos' })).toHaveAttribute(
+      'href',
+      '/students?q=lu',
+    )
   })
 
   it('RF04_sendsTheNameWhenItChanges', async () => {
@@ -98,9 +101,10 @@ describe('EditStudentScreen', () => {
 
     expect(await screen.findByRole('heading', { name: 'Lucía Pérez' })).toBeInTheDocument()
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
-    expect(
-      screen.getByRole('main').querySelector('a[href="/students?q=lu"]'),
-    ).not.toBeNull()
+    expect(screen.getByRole('link', { name: 'Volver a Alumnos' })).toHaveAttribute(
+      'href',
+      '/students?q=lu',
+    )
   })
 
   it('RF04_requiresTheNameAndThePhoneAndLimitsTheName', async () => {
@@ -168,7 +172,7 @@ describe('EditStudentScreen', () => {
     await waitFor(() =>
       expect(screen.getByRole('alert')).toHaveTextContent('No encontramos a este alumno.'),
     )
-    expect(screen.getByRole('link', { name: 'Volver a Alumnos' })).toBeInTheDocument()
+    expect(within(screen.getByRole('main')).getByRole('link', { name: 'Volver a Alumnos' })).toBeInTheDocument()
   })
 
   it('RF04_withoutConnectionTheErrorSaysNothingWasSaved', async () => {

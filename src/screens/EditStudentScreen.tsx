@@ -7,6 +7,7 @@ import { actionErrorText } from '../api/actionErrors'
 import { useStudentQuery, useUpdateStudent, type StudentProfile } from '../api/students'
 import { DisabledReason } from '../components/DisabledReason'
 import { TextField } from '../components/TextField'
+import { useBackTarget } from '../layout/backTarget'
 import { enrollmentLabel } from '../lib/format'
 import { listFromState, type StudentNavState } from '../lib/navState'
 import { useHeadingFocus } from '../lib/useHeadingFocus'
@@ -61,6 +62,8 @@ function EditForm({ student }: { student: StudentProfile }) {
   const [name, phone] = useWatch({ control, name: ['name', 'phone'] })
   const changed = name.trim() !== student.name || phone.trim() !== student.phone
   const from = listFromState(location.state)
+  const profileState: StudentNavState = from ? { from } : {}
+  useBackTarget({ to: `/students/${student.id}`, label: 'Ficha', state: profileState })
 
   async function onSubmit(values: EditValues) {
     setApiError(null)
@@ -83,13 +86,8 @@ function EditForm({ student }: { student: StudentProfile }) {
     void navigate(`/students/${student.id}`, { replace: true, state })
   }
 
-  const profileState: StudentNavState = from ? { from } : {}
-
   return (
     <section className={styles.screen}>
-      <Link className={styles.link} to={`/students/${student.id}`} state={profileState}>
-        <span aria-hidden="true">‹ </span>Ficha de {student.name}
-      </Link>
       <h1 ref={headingRef} tabIndex={-1} className={styles.title}>
         Editar datos
       </h1>
@@ -127,7 +125,7 @@ function EditForm({ student }: { student: StudentProfile }) {
           </p>
         )}
 
-        <div className={formStyles.actions}>
+        <div className={styles.actions}>
           {changed ? (
             <button type="submit" className={styles.button} disabled={isSubmitting}>
               {isSubmitting ? 'Guardando…' : 'Guardar cambios'}
@@ -135,7 +133,7 @@ function EditForm({ student }: { student: StudentProfile }) {
           ) : (
             <DisabledReason primary label="Guardar cambios" reason="No hay cambios para guardar." />
           )}
-          <Link className={styles.link} to={`/students/${student.id}`} state={profileState}>
+          <Link className={styles.secondaryButton} to={`/students/${student.id}`} state={profileState}>
             Cancelar
           </Link>
         </div>

@@ -8,12 +8,12 @@ import { ApiError } from '../api/errors'
 import { useCreateStudent } from '../api/students'
 import { RadioCardGroup } from '../components/RadioCardGroup'
 import { TextField } from '../components/TextField'
+import { useBackTarget } from '../layout/backTarget'
 import { formatDate } from '../lib/format'
 import type { StudentNavState } from '../lib/navState'
 import { useHeadingFocus } from '../lib/useHeadingFocus'
 import { monthlyStartRange, workshopToday } from '../lib/workshopTime'
 import styles from './Screen.module.css'
-import formStyles from './StudentForms.module.css'
 
 const TIMEOUT_TEXT =
   'La API tardó demasiado. No sabemos si se guardó: revisá la lista de alumnos antes de intentar de nuevo.'
@@ -52,6 +52,7 @@ type NewStudentValues = z.output<ReturnType<typeof buildSchema>>
 
 /** CU-02 pasos 1-4, 3a, 3b; RF-04, RF-05; DI-46, DI-53, DI-58: create a student and send the invitation. */
 export function NewStudentScreen() {
+  useBackTarget({ to: '/students', label: 'Alumnos' })
   const navigate = useNavigate()
   const create = useCreateStudent()
   const headingRef = useHeadingFocus()
@@ -102,9 +103,6 @@ export function NewStudentScreen() {
 
   return (
     <section className={styles.screen}>
-      <Link className={styles.link} to="/students">
-        <span aria-hidden="true">‹ </span>Alumnos
-      </Link>
       <h1 ref={headingRef} tabIndex={-1} className={styles.title}>
         Nuevo alumno
       </h1>
@@ -170,11 +168,11 @@ export function NewStudentScreen() {
           </p>
         )}
 
-        <div className={formStyles.actions}>
+        <div className={styles.actions}>
           <button type="submit" className={styles.button} disabled={isSubmitting}>
             {isSubmitting ? 'Creando…' : 'Crear y enviar invitación'}
           </button>
-          <Link className={styles.link} to="/students">
+          <Link className={styles.secondaryButton} to="/students">
             Cancelar
           </Link>
         </div>
