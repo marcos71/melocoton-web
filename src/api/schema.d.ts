@@ -207,7 +207,7 @@ export interface paths {
         head?: never;
         /**
          * Edit a slot (CU-03, RF-06, DI-45)
-         * @description At least one field. The capacity cannot go below the occupancy of any future lesson. Day and time can change only while the slot has no bookings, and may not overlap another active slot.
+         * @description At least one of day, start and end. They can change only while the slot has no bookings (scheduleEditable), and may not overlap another active slot. The capacity is the same for every slot (DI-64).
          */
         patch: operations["update"];
         trace?: never;
@@ -307,7 +307,7 @@ export interface paths {
         get?: never;
         /**
          * Assign or replace a monthly student's fixed slot (RF-08, DI-27, DI-42, DI-43)
-         * @description Generates the student's fixed bookings from today to the end of the rolling window, even over the slot's capacity: the response lists the future lessons of the slot that end up over capacity. If the student had another slot, its scheduled fixed bookings of lessons that have not started are cancelled (ENROLLMENT_CHANGE). Assigning the same slot again only fills the missing dates.
+         * @description The slot takes at most as many fixed students as its capacity (DI-66). Generates the student's fixed bookings from today to the end of the rolling window, even on dates that drop-ins filled: the response lists the future lessons of the slot that end up over capacity. If the student had another slot, its scheduled fixed bookings of lessons that have not started are cancelled (ENROLLMENT_CHANGE). Assigning the same slot again only fills the missing dates.
          */
         put: operations["assignFixedSlot"];
         post?: never;
@@ -374,9 +374,6 @@ export interface components {
             /** @enum {string} */
             type: "FIXED" | "DROP_IN" | "MAKEUP";
         };
-        CapacityBelowOccupancyDetails: {
-            lessons: components["schemas"]["LessonOverCapacity"][];
-        };
         CreateAssistantTeacherRequest: {
             /** Format: email */
             email: string;
@@ -384,8 +381,6 @@ export interface components {
             phone: string;
         };
         CreateSlotRequest: {
-            /** Format: int32 */
-            capacity: number;
             /**
              * Format: int32
              * @description ISO day of the week: 1 is Monday, 7 is Sunday
@@ -450,19 +445,17 @@ export interface components {
              */
             startTime: string;
         };
+        FixedStudentsFullDetails: {
+            /** Format: int32 */
+            capacity: number;
+            /** Format: int32 */
+            fixedStudents: number;
+        };
         HealthResponse: {
             /** @enum {string} */
             database: "UP" | "DOWN";
             /** @enum {string} */
             status: "UP" | "DOWN";
-        };
-        LessonOverCapacity: {
-            /** Format: date */
-            lessonDate: string;
-            /** Format: int32 */
-            occupancy: number;
-            /** Format: int32 */
-            spotsToFree: number;
         };
         LessonResponse: {
             /**
@@ -556,8 +549,15 @@ export interface components {
              * @example 18:00
              */
             endTime: string;
+            /**
+             * Format: int32
+             * @description Active students whose fixed slot is this one; never above the capacity when assigned (DI-66)
+             */
+            fixedStudents: number;
             /** Format: int64 */
             id: number;
+            /** @description Whether day and time can still be changed: the slot is active and never had a booking (DI-45, DI-63) */
+            scheduleEditable: boolean;
             /**
              * @description HH:mm
              * @example 18:00
@@ -656,8 +656,6 @@ export interface components {
             type: "FIXED" | "DROP_IN" | "MAKEUP";
         };
         UpdateSlotRequest: {
-            /** Format: int32 */
-            capacity?: number | null;
             /**
              * Format: int32
              * @description ISO day of the week: 1 is Monday, 7 is Sunday
@@ -1296,7 +1294,7 @@ export interface operations {
                     "*/*": components["schemas"]["SlotItemResponse"];
                 };
             };
-            /** @description validation_error: nothing to change, a field out of range, or the start is not before the end */
+            /** @description validation_error: nothing to change, a day out of range, or the start is not before the end */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -1323,7 +1321,7 @@ export interface operations {
                     "*/*": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description status_conflict: the slot is inactive. slot_has_bookings: day or time cannot change. slot_overlap: details is SlotOverlapDetails. capacity_below_occupancy: details is CapacityBelowOccupancyDetails */
+            /** @description status_conflict: the slot is inactive. slot_has_bookings: day or time cannot change. slot_overlap: details is SlotOverlapDetails */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -1746,7 +1744,7 @@ export interface operations {
                     "*/*": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description enrollment_type_mismatch: the student is not monthly. student_inactive. slot_inactive */
+            /** @description enrollment_type_mismatch: the student is not monthly. student_inactive. slot_inactive. fixed_students_full: the slot already has as many fixed students as its capacity; details is FixedStudentsFullDetails (DI-66) */
             409: {
                 headers: {
                     [name: string]: unknown;
