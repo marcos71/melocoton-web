@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router'
 import { actionErrorText, readErrorText } from '../api/actionErrors'
 import { useAssignFixedSlot } from '../api/bookings'
 import { ApiError } from '../api/errors'
-import { slotsQueryKey, useActiveSlotsQuery } from '../api/slots'
+import { slotsQueryKey, useActiveSlotsQuery, type SlotItem } from '../api/slots'
 import { getStudent, studentDetailKey, useStudentQuery, type StudentProfile } from '../api/students'
 import { DisabledReason } from '../components/DisabledReason'
 import { QueryError } from '../components/QueryError'
@@ -33,7 +33,11 @@ const ERROR_TEXTS: Record<string, string> = {
   slot_inactive: 'Ese turno está desactivado: no admite reservas nuevas. Elegí otro.',
   enrollment_type_mismatch: 'Solo un alumno mensual tiene turno fijo.',
   student_inactive: 'El alumno está inactivo.',
+  fixed_students_full: 'Ese turno ya tiene 12 alumnos fijos. Elegí otro turno.',
 }
+
+/** Failures that say the chosen slot cannot be assigned: the choice is cleared. */
+const CLEARS_CHOICE = new Set(['slot_inactive', 'fixed_students_full'])
 
 /** CU-04 pasos 1-4, 3b, 3c; RF-08; DI-27, DI-42, DI-43: assign or replace a monthly student's fixed slot. */
 export function FixedSlotScreen() {
@@ -49,6 +53,13 @@ export function FixedSlotScreen() {
       {(profile) => <FixedSlotForm student={profile} />}
     </StudentGate>
   )
+}
+
+/** Why a slot cannot be chosen, if it cannot: it is the student's own, or it has all its fixed places taken (DI-66). */
+function unavailableReason(slot: SlotItem, current: StudentProfile['fixedSlot']): string | undefined {
+  if (slot.id === current?.id) return 'Es su turno actual.'
+  if (slot.fixedStudents >= slot.capacity) return `Completo: tiene ${slot.capacity} alumnos fijos.`
+  return undefined
 }
 
 function FixedSlotForm({ student }: { student: StudentProfile }) {
@@ -88,14 +99,15 @@ function FixedSlotForm({ student }: { student: StudentProfile }) {
   const options: RadioCardOption<string>[] = sortedSlots.map((slot) => {
     const overbooked = slot.upcomingOverbookedLessons.length
     const description = [
-      `Cupo: ${slot.capacity}`,
+      `Fijos: ${slot.fixedStudents} de ${slot.capacity}`,
       ...(overbooked > 0 ? [overbookedText(overbooked)] : []),
     ].join(' · ')
+    const reason = unavailableReason(slot, current)
     return {
       value: String(slot.id),
       label: formatSlot(slot),
       description,
-      ...(slot.id === current?.id ? { unavailableReason: 'Es su turno actual.' } : {}),
+      ...(reason === undefined ? {} : { unavailableReason: reason }),
     }
   })
 
@@ -140,7 +152,8 @@ function FixedSlotForm({ student }: { student: StudentProfile }) {
           void resolveNotFound()
           return
         }
-        if (error instanceof ApiError && error.code === 'slot_inactive') setSelectedId(null)
+        // The choice no longer holds; the slots were already read again when the call settled.
+        if (error instanceof ApiError && CLEARS_CHOICE.has(error.code)) setSelectedId(null)
         setApiError(actionErrorText(error, { byCode: ERROR_TEXTS }))
       },
     })

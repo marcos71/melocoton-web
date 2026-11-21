@@ -5,8 +5,10 @@ export const tuesdaySlot = {
   dayOfWeek: 2,
   startTime: '18:00',
   endTime: '20:00',
-  capacity: 8,
+  capacity: 12,
   active: true,
+  fixedStudents: 3,
+  scheduleEditable: false,
   upcomingOverbookedLessons: [],
 }
 
@@ -15,8 +17,10 @@ export const mondaySlot = {
   dayOfWeek: 1,
   startTime: '10:00',
   endTime: '12:00',
-  capacity: 8,
+  capacity: 12,
   active: true,
+  fixedStudents: 3,
+  scheduleEditable: false,
   upcomingOverbookedLessons: [],
 }
 
@@ -25,8 +29,10 @@ export const thursdaySlot = {
   dayOfWeek: 4,
   startTime: '18:00',
   endTime: '20:00',
-  capacity: 8,
+  capacity: 12,
   active: true,
+  fixedStudents: 3,
+  scheduleEditable: false,
   upcomingOverbookedLessons: [],
 }
 

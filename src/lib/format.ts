@@ -50,6 +50,11 @@ export function formatSlotInSentence(slot: SlotTime): string {
   return `el ${formatSlotLower(slot)}`
 }
 
+/** "Martes": the name of an ISO day of the week, capitalized, for options and titles. */
+export function dayLabel(dayOfWeek: number): string {
+  return capitalize(DAYS[dayOfWeek - 1] ?? '')
+}
+
 /** "martes": the name of an ISO day of the week (1 is Monday). */
 export function dayName(dayOfWeek: number): string {
   return DAYS[dayOfWeek - 1] ?? ''

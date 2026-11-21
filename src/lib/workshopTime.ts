@@ -68,3 +68,10 @@ export function addMonths(date: string, months: number): string {
 export function monthlyStartRange(today: string): { min: string; max: string } {
   return { min: firstOfMonth(today), max: addMonths(today, 1) }
 }
+
+/** `date` plus `days` days (yyyy-MM-dd), crossing months and years. */
+export function addDays(date: string, days: number): string {
+  const { year, month, day } = parseDate(date)
+  const moved = new Date(Date.UTC(year, month - 1, day + days))
+  return `${moved.getUTCFullYear()}-${pad(moved.getUTCMonth() + 1)}-${pad(moved.getUTCDate())}`
+}
