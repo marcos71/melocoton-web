@@ -147,6 +147,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/lessons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Lessons between two dates with their free capacity (DI-56, CU-04)
+         * @description One lesson per date in the range that falls on the weekday of each active slot (or of slotId only; an inactive slot has none), sorted by date and start time. The range is inclusive and at most 3 months long.
+         */
+        get: operations["listLessons"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/slots": {
         parameters: {
             query?: never;
@@ -207,7 +227,7 @@ export interface paths {
         put?: never;
         /**
          * Register a student; they get an email to define their password (CU-02, RF-04, RF-05, DI-46)
-         * @description Name, email, phone and enrollment type are required. A MONTHLY student starts on monthlyStartDate, or today when it is not sent; a DROP_IN student must not send it. The email must not belong to any other account.
+         * @description Name, email, phone and enrollment type are required. A MONTHLY student starts on monthlyStartDate, or today when it is not sent, between the first day of the current month and one month after today (DI-58); a DROP_IN student must not send it. The email must not belong to any other account.
          */
         post: operations["createStudent"];
         delete?: never;
@@ -389,7 +409,7 @@ export interface components {
             enrollmentType: "MONTHLY" | "DROP_IN";
             /**
              * Format: date
-             * @description Only for MONTHLY, where it defaults to today; DROP_IN must not send it
+             * @description Only for MONTHLY, where it defaults to today; DROP_IN must not send it. From the first day of the current month to one month after today (DI-58)
              * @example 2026-11-02
              */
             monthlyStartDate?: string | null;
@@ -443,6 +463,49 @@ export interface components {
             occupancy: number;
             /** Format: int32 */
             spotsToFree: number;
+        };
+        LessonResponse: {
+            /**
+             * Format: int32
+             * @description The slot's maximum capacity
+             */
+            capacity: number;
+            /**
+             * Format: int32
+             * @description ISO day of the week: 1 is Monday, 7 is Sunday
+             */
+            dayOfWeek: number;
+            /**
+             * @description HH:mm
+             * @example 20:00
+             */
+            endTime: string;
+            /**
+             * Format: int32
+             * @description Places left, never negative
+             */
+            freeSpots: number;
+            /**
+             * Format: date
+             * @example 2026-12-03
+             */
+            lessonDate: string;
+            /**
+             * Format: int32
+             * @description Occupied places: scheduled and present bookings of any type (RN-02)
+             */
+            occupancy: number;
+            /** @description More places occupied than the capacity (DI-43) */
+            overbooked: boolean;
+            /** Format: int64 */
+            slotId: number;
+            /**
+             * @description HH:mm
+             * @example 18:00
+             */
+            startTime: string;
+            /** @description The lesson has already started (workshop time zone) */
+            started: boolean;
         };
         LoginRequest: {
             email: string;
@@ -991,6 +1054,66 @@ export interface operations {
             };
         };
     };
+    listLessons: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+                slotId?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The lessons */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LessonResponse"][];
+                };
+            };
+            /** @description validation_error: from or to is missing or malformed. invalid_date_range: from is after to, or to is more than 3 months after from */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description role_not_allowed: only the lead teacher */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description not_found: slotId is not a slot */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description too_many_requests: more than 60 requests in a minute from the same user */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     list: {
         parameters: {
             query?: {
@@ -1293,7 +1416,7 @@ export interface operations {
                     "*/*": components["schemas"]["StudentProfileResponse"];
                 };
             };
-            /** @description validation_error: a field is missing or blank, the name has more than 80 characters, the email is malformed, or a DROP_IN student sends a start date */
+            /** @description validation_error: a field is missing or blank, the name has more than 80 characters, the email is malformed, or a DROP_IN student sends a start date. invalid_monthly_start_date: the start date is before the first day of the current month or more than one month ahead */
             400: {
                 headers: {
                     [name: string]: unknown;
