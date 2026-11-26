@@ -76,3 +76,8 @@ export function overbookedLessons(slots: readonly SlotItem[]): OverbookedLesson[
 
 /** Every slot has the same capacity (DI-64); the responses also carry it, but it is not chosen or edited. */
 export const SLOT_CAPACITY = 12
+
+/** A slot has as many fixed students as its capacity: no fixed student fits (DI-66). */
+export function isFullOfFixedStudents(slot: Pick<SlotItem, 'fixedStudents' | 'capacity'>): boolean {
+  return slot.fixedStudents >= slot.capacity
+}

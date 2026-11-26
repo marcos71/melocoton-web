@@ -20,8 +20,9 @@ import {
 } from '../lib/format'
 import { assignmentNotice } from '../lib/assignmentNotice'
 import { listFromState, type StudentNavState } from '../lib/navState'
+import { SLOT_CAPACITY, isFullOfFixedStudents } from '../lib/slotRules'
 import { useHeadingFocus } from '../lib/useHeadingFocus'
-import { useStudentId } from '../lib/useStudentId'
+import { useRouteId } from '../lib/useRouteId'
 import styles from './Screen.module.css'
 import formStyles from './StudentForms.module.css'
 import { StudentGate } from './StudentGate'
@@ -33,7 +34,7 @@ const ERROR_TEXTS: Record<string, string> = {
   slot_inactive: 'Ese turno está desactivado: no admite reservas nuevas. Elegí otro.',
   enrollment_type_mismatch: 'Solo un alumno mensual tiene turno fijo.',
   student_inactive: 'El alumno está inactivo.',
-  fixed_students_full: 'Ese turno ya tiene 12 alumnos fijos. Elegí otro turno.',
+  fixed_students_full: `Ese turno ya tiene ${SLOT_CAPACITY} alumnos fijos. Elegí otro turno.`,
 }
 
 /** Failures that say the chosen slot cannot be assigned: the choice is cleared. */
@@ -41,7 +42,7 @@ const CLEARS_CHOICE = new Set(['slot_inactive', 'fixed_students_full'])
 
 /** CU-04 pasos 1-4, 3b, 3c; RF-08; DI-27, DI-42, DI-43: assign or replace a monthly student's fixed slot. */
 export function FixedSlotScreen() {
-  const id = useStudentId()
+  const id = useRouteId()
   const student = useStudentQuery(id)
   return (
     <StudentGate
@@ -58,7 +59,7 @@ export function FixedSlotScreen() {
 /** Why a slot cannot be chosen, if it cannot: it is the student's own, or it has all its fixed places taken (DI-66). */
 function unavailableReason(slot: SlotItem, current: StudentProfile['fixedSlot']): string | undefined {
   if (slot.id === current?.id) return 'Es su turno actual.'
-  if (slot.fixedStudents >= slot.capacity) return `Completo: tiene ${slot.capacity} alumnos fijos.`
+  if (isFullOfFixedStudents(slot)) return `Completo: tiene ${slot.capacity} alumnos fijos.`
   return undefined
 }
 
@@ -168,7 +169,7 @@ function FixedSlotForm({ student }: { student: StudentProfile }) {
 
       {slots.isPending && <p role="status">Cargando turnos…</p>}
 
-      {slots.isError && (
+      {slots.isError && slots.data === undefined && (
         <QueryError
           title="No se pudieron cargar los turnos."
           reason={readErrorText(slots.error)}
@@ -177,13 +178,18 @@ function FixedSlotForm({ student }: { student: StudentProfile }) {
         />
       )}
 
-      {slots.isSuccess && sortedSlots.length === 0 && (
-        <p className={styles.empty}>
-          Todavía no hay turnos. Crealos en <Link to="/slots">Turnos</Link>.
-        </p>
+      {slots.data !== undefined && sortedSlots.length === 0 && (
+        <>
+          <p className={styles.empty}>Todavía no hay turnos. Primero hay que crearlos.</p>
+          <div className={styles.actions}>
+            <Link className={styles.secondaryButton} to="/slots">
+              Ir a Turnos
+            </Link>
+          </div>
+        </>
       )}
 
-      {slots.isSuccess && sortedSlots.length > 0 && (
+      {slots.data !== undefined && sortedSlots.length > 0 && (
         <form
           className={styles.form}
           onSubmit={(event) => {

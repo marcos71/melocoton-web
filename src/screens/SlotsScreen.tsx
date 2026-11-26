@@ -7,15 +7,21 @@ import { Notice } from '../components/Notice'
 import { QueryError } from '../components/QueryError'
 import { bySlotTime, formatLessonDate, formatSlot, overbookedText } from '../lib/format'
 import { noticeFromState, type NoticeData } from '../lib/navState'
-import { SLOT_CAPACITY, nextLessonBySlot, normalizeSlotTime, overbookedLessons } from '../lib/slotRules'
+import {
+  SLOT_CAPACITY,
+  isFullOfFixedStudents,
+  nextLessonBySlot,
+  normalizeSlotTime,
+  overbookedLessons,
+} from '../lib/slotRules'
 import { useHeadingFocus } from '../lib/useHeadingFocus'
 import { useNow } from '../lib/useNow'
 import { addDays, workshopToday } from '../lib/workshopTime'
 import screenStyles from './Screen.module.css'
 import styles from './SlotsScreen.module.css'
 
-/** DI-62: the occupancy of each slot's next class comes from one read of this many days ahead. */
-const LESSON_DAYS = 6
+/** DI-62, DI-67: one read from today to today + 7, so a slot whose lesson today already started still shows next week's. */
+const LESSON_DAYS = 7
 const SKELETON_ROWS = [0, 1, 2]
 
 function overbookedNotice(slots: readonly SlotItem[]): NoticeData | null {
@@ -46,7 +52,7 @@ export function SlotsScreen() {
 
   const sorted = [...(slots.data ?? [])].sort(bySlotTime)
   const overbooked = overbookedNotice(sorted)
-  const nextLessons = lessons.isSuccess ? nextLessonBySlot(lessons.data, now) : null
+  const nextLessons = lessons.data ? nextLessonBySlot(lessons.data, now) : null
 
   return (
     <section className={styles.page}>
@@ -54,10 +60,10 @@ export function SlotsScreen() {
         <h1 ref={headingRef} tabIndex={-1} className={screenStyles.title}>
           Turnos
         </h1>
+        <p>Cada turno tiene cupo para {SLOT_CAPACITY} alumnos.</p>
         <Link className={`${screenStyles.button} ${styles.newButton}`} to="/slots/new">
           Nuevo turno
         </Link>
-        <p>Cada turno tiene cupo para {SLOT_CAPACITY} alumnos.</p>
       </div>
 
       {arrivalNotice && <Notice {...arrivalNotice} onClose={() => setArrivalNotice(null)} />}
@@ -74,7 +80,7 @@ export function SlotsScreen() {
         </div>
       )}
 
-      {slots.isError && (
+      {slots.isError && slots.data === undefined && (
         <QueryError
           title="No se pudieron cargar los turnos."
           reason={readErrorText(slots.error)}
@@ -83,7 +89,7 @@ export function SlotsScreen() {
         />
       )}
 
-      {slots.isSuccess && sorted.length === 0 && (
+      {slots.data !== undefined && sorted.length === 0 && (
         <div className={screenStyles.empty}>
           <svg className={styles.splash} viewBox="0 0 48 48" aria-hidden="true" focusable="false">
             <circle cx="14" cy="16" r="5" />
@@ -98,24 +104,26 @@ export function SlotsScreen() {
         </div>
       )}
 
-      {slots.isSuccess && sorted.length > 0 && (
+      {slots.data !== undefined && sorted.length > 0 && (
         <>
           <p aria-live="polite" className={styles.count}>
             {sorted.length === 1 ? '1 turno' : `${sorted.length} turnos`}
           </p>
-          {lessons.isError && (
-            <p className={styles.occupancyError}>
-              No se pudo cargar la ocupación de las próximas clases.
-              <button
-                type="button"
-                className={styles.linkButton}
-                disabled={lessons.isFetching}
-                onClick={() => void lessons.refetch()}
-              >
-                {lessons.isFetching ? 'Reintentando…' : 'Reintentar'}
-              </button>
-            </p>
-          )}
+          <div role="status" className={styles.occupancyStatus}>
+            {lessons.isError && lessons.data === undefined && (
+              <>
+                <p>No se pudo cargar la ocupación de las próximas clases.</p>
+                <button
+                  type="button"
+                  className={screenStyles.secondaryButton}
+                  disabled={lessons.isFetching}
+                  onClick={() => void lessons.refetch()}
+                >
+                  {lessons.isFetching ? 'Reintentando…' : 'Reintentar'}
+                </button>
+              </>
+            )}
+          </div>
           <ul className={styles.list}>
             {sorted.map((slot) => (
               <SlotCard key={slot.id} slot={slot} next={nextLessons?.get(slot.id)} />
@@ -128,7 +136,7 @@ export function SlotsScreen() {
 }
 
 function SlotCard({ slot, next }: { slot: SlotItem; next: Lesson | undefined }) {
-  const full = slot.fixedStudents >= slot.capacity
+  const full = isFullOfFixedStudents(slot)
   const overbooked = slot.upcomingOverbookedLessons.length
   return (
     <li className={styles.card}>

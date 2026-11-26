@@ -1,4 +1,5 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { focusManager } from '@tanstack/react-query'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { errorResponse, jsonResponse, renderApp, requestsTo, stubApi } from '../test/utils'
 import {
@@ -367,14 +368,42 @@ describe('FixedSlotScreen: states', () => {
     expect(screen.queryByRole('radio')).not.toBeInTheDocument()
   })
 
-  it('RF08_withoutActiveSlotsItSendsToTheSlotsScreen', async () => {
+  it('RF08_withoutSlotsItSaysSoAndOffersToGoToTurnos', async () => {
     stubApi({ ...studentRoute(luisProfile), [SLOTS]: () => jsonResponse(200, []) })
     renderSlot(12)
 
-    expect(await screen.findByText(/Todavía no hay turnos\./)).toHaveTextContent(
-      'Todavía no hay turnos. Crealos en Turnos.',
+    expect(await screen.findByText('Todavía no hay turnos. Primero hay que crearlos.')).toBeInTheDocument()
+    expect(within(screen.getByRole('main')).getByRole('link', { name: 'Ir a Turnos' })).toHaveAttribute(
+      'href',
+      '/slots',
     )
-    expect(within(screen.getByRole('main')).getByRole('link', { name: 'Turnos' })).toHaveAttribute('href', '/slots')
+  })
+
+  it('RF08_aFailedRereadOfTheSlotsKeepsTheOptionsAndTheChoice', async () => {
+    let reads = 0
+    const fetchFn = stubApi({
+      ...studentRoute(luisProfile),
+      [SLOTS]: () =>
+        ++reads === 1
+          ? jsonResponse(200, [thursdaySlot, mondaySlot, tuesdaySlot])
+          : errorResponse(500, 'internal_error', 'x'),
+    })
+    try {
+      renderSlot(12)
+      await chooseThursday()
+
+      act(() => {
+        focusManager.setFocused(false)
+        focusManager.setFocused(true)
+      })
+      await waitFor(() => expect(requestsTo(fetchFn, SLOTS).length).toBeGreaterThanOrEqual(3))
+
+      expect(screen.getByRole('radio', { name: /Jueves 18:00 a 20:00/ })).toBeChecked()
+      expect(screen.getByRole('button', { name: 'Asignar turno fijo' })).toBeInTheDocument()
+      expect(screen.queryByText('No se pudieron cargar los turnos.')).not.toBeInTheDocument()
+    } finally {
+      focusManager.setFocused(undefined)
+    }
   })
 
   it('RF08_showsALoadingTextForTheSlotsAndAnErrorWithRetryIfTheyFail', async () => {

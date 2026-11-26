@@ -1,4 +1,5 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { focusManager } from '@tanstack/react-query'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { apiLesson, mondayMorning, slotItem, thursdayEvening, tuesdayEvening } from '../test/slots'
 import { errorResponse, jsonResponse, renderApp, requestsTo, stubApi } from '../test/utils'
@@ -116,7 +117,7 @@ describe('SlotsScreen: list', () => {
   })
 
   it('DI62_eachCardShowsItsNextLessonThatHasNotStartedWithItsOccupancy', async () => {
-    const fetchFn = stubApi({
+    stubApi({
       [SLOTS]: () => jsonResponse(200, [mondayMorning, thursdayEvening, tuesdayEvening]),
       [LESSONS]: () =>
         jsonResponse(200, [
@@ -133,10 +134,68 @@ describe('SlotsScreen: list', () => {
     )
     // A slot without a lesson in the next days shows no line.
     expect(cardOf('Martes 18:00 a 20:00')).not.toHaveTextContent('Próxima')
+  })
+
+  it('DI67_readsTheLessonsFromTodayToSevenDaysAhead', async () => {
+    const fetchFn = stubApi({
+      [SLOTS]: () => jsonResponse(200, [mondayMorning]),
+      [LESSONS]: () => jsonResponse(200, []),
+    })
+    renderSlots()
+
+    await screen.findByText('1 turno')
+    await waitFor(() => expect(requestsTo(fetchFn, LESSONS)).toHaveLength(1))
     const query = new URL(requestsTo(fetchFn, LESSONS)[0]?.url ?? '').searchParams
     expect(query.get('from')).toBe('2026-11-20')
-    expect(query.get('to')).toBe('2026-11-26')
-    expect(requestsTo(fetchFn, LESSONS)).toHaveLength(1)
+    expect(query.get('to')).toBe('2026-11-27')
+  })
+
+  it('DI67_aSlotWhoseLessonTodayAlreadyStartedShowsNextWeeksLesson', async () => {
+    const friday = slotItem({ id: 5, dayOfWeek: 5, startTime: '10:00', endTime: '12:00' })
+    stubApi({
+      [SLOTS]: () => jsonResponse(200, [friday]),
+      [LESSONS]: () =>
+        jsonResponse(200, [
+          apiLesson(5, '2026-11-20', { dayOfWeek: 5, started: true }),
+          apiLesson(5, '2026-11-27', { dayOfWeek: 5, occupancy: 4 }),
+        ]),
+    })
+    renderSlots()
+
+    await screen.findByText('Próxima: Vie 27 de nov · 4 de 12 lugares')
+  })
+
+  it('RF06_theCapacityTextComesBeforeNuevoTurno', async () => {
+    stubApi({ [SLOTS]: () => jsonResponse(200, []), [LESSONS]: () => jsonResponse(200, []) })
+    renderSlots()
+
+    const link = await screen.findByRole('link', { name: 'Nuevo turno' })
+    const text = screen.getByText('Cada turno tiene cupo para 12 alumnos.')
+    expect(text.compareDocumentPosition(link) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('RF06_aFailedRereadKeepsTheListOnScreen', async () => {
+    let reads = 0
+    const fetchFn = stubApi({
+      [SLOTS]: () =>
+        ++reads === 1 ? jsonResponse(200, [mondayMorning]) : errorResponse(500, 'internal_error', 'x'),
+      [LESSONS]: () => jsonResponse(200, []),
+    })
+    try {
+      renderSlots()
+      await screen.findByText('1 turno')
+
+      act(() => {
+        focusManager.setFocused(false)
+        focusManager.setFocused(true)
+      })
+      await waitFor(() => expect(requestsTo(fetchFn, SLOTS).length).toBeGreaterThanOrEqual(3))
+
+      expect(screen.getByRole('heading', { level: 2, name: 'Lunes 10:00 a 12:00' })).toBeInTheDocument()
+      expect(screen.queryByText('No se pudieron cargar los turnos.')).not.toBeInTheDocument()
+    } finally {
+      focusManager.setFocused(undefined)
+    }
   })
 
   it('DI62_ifTheLessonsFailTheSlotsStayAndAnErrorWithRetryAppears', async () => {
@@ -148,9 +207,9 @@ describe('SlotsScreen: list', () => {
     })
     renderSlots()
 
-    expect(
-      await screen.findByText(/No se pudo cargar la ocupación de las próximas clases\./),
-    ).toBeInTheDocument()
+    const message = await screen.findByText(/No se pudo cargar la ocupación de las próximas clases\./)
+    expect(message.closest('[role="status"]')).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Reintentar' })).toBeInTheDocument()
     expect(cardOf('Lunes 10:00 a 12:00')).toHaveTextContent('Fijos: 0 de 12')
 
     up = true

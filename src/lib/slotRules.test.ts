@@ -1,6 +1,7 @@
 import { apiLesson, mondayMorning, slotItem, thursdayEvening, tuesdayEvening } from '../test/slots'
 import {
   findOverlap,
+  isFullOfFixedStudents,
   nextLessonBySlot,
   normalizeSlotTime,
   normalizeTime,
@@ -123,5 +124,13 @@ describe('overbookedLessons', () => {
       ['2026-12-07', 2],
       ['2026-12-07', 4],
     ])
+  })
+})
+
+describe('isFullOfFixedStudents', () => {
+  it('DI66_aSlotWithAsManyFixedStudentsAsCapacityIsFull', () => {
+    expect(isFullOfFixedStudents({ fixedStudents: 12, capacity: 12 })).toBe(true)
+    expect(isFullOfFixedStudents({ fixedStudents: 11, capacity: 12 })).toBe(false)
+    expect(isFullOfFixedStudents({ fixedStudents: 13, capacity: 12 })).toBe(true)
   })
 })

@@ -11,7 +11,7 @@ import { useBackTarget } from '../layout/backTarget'
 import { enrollmentLabel } from '../lib/format'
 import { listFromState, type StudentNavState } from '../lib/navState'
 import { useHeadingFocus } from '../lib/useHeadingFocus'
-import { useStudentId } from '../lib/useStudentId'
+import { useRouteId } from '../lib/useRouteId'
 import styles from './Screen.module.css'
 import formStyles from './StudentForms.module.css'
 import { StudentGate } from './StudentGate'
@@ -29,7 +29,7 @@ type EditValues = z.infer<typeof editSchema>
 
 /** CU-02 M1 (data only), DI-46, DI-53: correct a student's name and phone. */
 export function EditStudentScreen() {
-  const id = useStudentId()
+  const id = useRouteId()
   const student = useStudentQuery(id)
   return (
     <StudentGate

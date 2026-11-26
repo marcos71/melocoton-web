@@ -30,10 +30,10 @@ export function EditSlotScreen() {
   useBackTarget({ to: '/slots', label: 'Turnos' })
 
   if (!Number.isInteger(id) || blocked === 'missing') return <Message text="No encontramos este turno." error />
-  if (slot.isError) {
-    if (slot.error instanceof ApiError && slot.error.status === 404) {
-      return <Message text="No encontramos este turno." error />
-    }
+  if (slot.isError && slot.error instanceof ApiError && slot.error.status === 404) {
+    return <Message text="No encontramos este turno." error />
+  }
+  if (slot.data === undefined && slot.isError) {
     return (
       <section className={styles.screen}>
         <QueryError
@@ -46,7 +46,7 @@ export function EditSlotScreen() {
       </section>
     )
   }
-  if (!slot.isSuccess) {
+  if (slot.data === undefined) {
     return (
       <section className={styles.screen}>
         <p role="status">Cargando turno…</p>
@@ -59,7 +59,12 @@ export function EditSlotScreen() {
   if (blocked === 'bookings' || !slot.data.scheduleEditable) {
     return <Message text="Este turno ya tiene reservas: el día y el horario no se pueden cambiar." />
   }
-  return <EditForm slot={slot.data} onBlocked={setBlocked} />
+  return <EditForm key={scheduleKey(slot.data)} slot={slot.data} onBlocked={setBlocked} />
+}
+
+/** Changes only when the day or a time changes, so a refetch with the same schedule keeps what was typed. */
+function scheduleKey(slot: SlotItem): string {
+  return `${slot.dayOfWeek}|${normalizeTime(slot.startTime)}|${normalizeTime(slot.endTime)}`
 }
 
 function BackToSlots() {

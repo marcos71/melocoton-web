@@ -24,7 +24,7 @@ import { bySlotTime, formatSlot } from '../lib/format'
 import { listFromState, type StudentNavState } from '../lib/navState'
 import { useHeadingFocus } from '../lib/useHeadingFocus'
 import { useNow } from '../lib/useNow'
-import { useStudentId } from '../lib/useStudentId'
+import { useRouteId } from '../lib/useRouteId'
 import { addMonths, workshopToday } from '../lib/workshopTime'
 import dropInStyles from './DropInBookingScreen.module.css'
 import styles from './Screen.module.css'
@@ -56,7 +56,7 @@ const CLEARS_CHOICE = new Set([
 
 /** CU-04 pasos 1-4; RF-09, RF-11; RN-03; DI-41, DI-43, DI-44, DI-56: book a drop-in class. */
 export function DropInBookingScreen() {
-  const id = useStudentId()
+  const id = useRouteId()
   const student = useStudentQuery(id)
   return (
     <StudentGate

@@ -21,7 +21,7 @@ import {
 import { listFromState, noticeFromState, type NoticeData, type StudentNavState } from '../lib/navState'
 import { useHeadingFocus } from '../lib/useHeadingFocus'
 import { useNow } from '../lib/useNow'
-import { useStudentId } from '../lib/useStudentId'
+import { useRouteId } from '../lib/useRouteId'
 import { useWideScreen } from '../lib/useWideScreen'
 import { lessonStarted } from '../lib/workshopTime'
 import screenStyles from './Screen.module.css'
@@ -39,7 +39,7 @@ const CANCEL_ERRORS: Record<string, string> = {
 
 /** DI-46, CU-04: the student's data and upcoming classes, and the actions of the iteration. */
 export function StudentProfileScreen() {
-  const id = useStudentId()
+  const id = useRouteId()
   const student = useStudentQuery(id)
   return (
     <StudentGate

@@ -284,4 +284,59 @@ describe('EditSlotScreen', () => {
 
     expect(await screen.findByLabelText('Hora de inicio')).toHaveValue('18:00')
   })
+
+  it('DI63_whenTheSlotReadDiffersFromTheListTheFormShowsTheReadValues', async () => {
+    const fetchFn = stubApi({
+      ...baseRoutes,
+      [SLOT]: () => jsonResponse(200, { ...editable, startTime: '19:00', endTime: '21:00' }),
+    })
+    renderApp({ role: 'LEAD_TEACHER', path: '/slots' })
+    await screen.findByText('2 turnos')
+
+    await userEvent.click(await screen.findByRole('link', { name: 'Corregir día u horario' }))
+
+    await waitFor(() => expect(screen.getByLabelText('Hora de inicio')).toHaveValue('19:00'))
+    await waitFor(() => expect(screen.getByLabelText('Hora de fin')).toHaveValue('21:00'))
+    const button = screen.getByRole('button', { name: 'Guardar cambios' })
+    expect(button).toHaveAttribute('aria-disabled', 'true')
+    expect(button).toHaveAccessibleDescription('No hay cambios para guardar.')
+    expect(requestsTo(fetchFn, PATCH)).toHaveLength(0)
+  })
+
+  it('DI63_aFailedRereadAfterASaveErrorKeepsTheFormTheTypedValuesAndTheError', async () => {
+    let reads = 0
+    const fetchFn = stubApi({
+      ...baseRoutes,
+      [SLOT]: () => (++reads === 1 ? jsonResponse(200, editable) : errorResponse(500, 'internal_error', 'x')),
+      [PATCH]: () => Promise.reject(new DOMException('slow', 'TimeoutError')),
+    })
+    renderEdit()
+    await userEvent.selectOptions(await screen.findByLabelText('Día'), '3')
+
+    await save()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'La API tardó demasiado. No sabemos si se guardó: revisá la lista de turnos antes de intentar de nuevo.',
+    )
+    await waitFor(() => expect(requestsTo(fetchFn, SLOT).length).toBeGreaterThanOrEqual(3))
+    expect(screen.getByLabelText('Día')).toHaveValue('3')
+    expect(screen.getByRole('button', { name: 'Guardar cambios' })).toBeInTheDocument()
+    expect(screen.queryByText('No se pudo cargar el turno.')).not.toBeInTheDocument()
+  })
+
+  it('DI63_aSlotThatDisappearsOnRereadShowsNotFound', async () => {
+    let reads = 0
+    stubApi({
+      ...baseRoutes,
+      [SLOT]: () => (++reads === 1 ? jsonResponse(200, editable) : errorResponse(404, 'not_found', 'x')),
+      [PATCH]: () => errorResponse(500, 'internal_error', 'x'),
+    })
+    renderEdit()
+    await userEvent.selectOptions(await screen.findByLabelText('Día'), '3')
+
+    await save()
+
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Error: No encontramos este turno.'))
+    expect(screen.queryByRole('button', { name: 'Reintentar' })).not.toBeInTheDocument()
+  })
 })

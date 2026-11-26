@@ -24,25 +24,20 @@
   font-weight: 600;
 }
 
-.occupancyError {
+.occupancyStatus {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.25rem;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.occupancyStatus p {
   margin: 0;
   font-size: 0.875rem;
   font-weight: 600;
 }
 
-.linkButton {
-  min-height: 2.75rem;
-  padding: 0 0.25rem;
-  font: inherit;
-  color: var(--color-ink);
-  text-decoration: underline;
-  background: none;
-  border: 0;
-  cursor: pointer;
+.occupancyStatus button {
+  align-self: stretch;
 }
 
 .list {
@@ -111,6 +106,10 @@
 
   .newButton {
     align-self: auto;
+  }
+
+  .occupancyStatus button {
+    align-self: flex-start;
   }
 
   .list {
