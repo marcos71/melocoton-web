@@ -20,13 +20,16 @@ export const STUDENT_PATHS = [
   '/students/:id/drop-in/new',
 ] as const
 
+/** Routes of the Turnos tab beyond the list (docs/pantallas_turnos.md, 1.2): the lead teacher only. */
+export const SLOT_PATHS = ['/slots/new', '/slots/:id/edit'] as const
+
 export function homePath(role: Role): string {
   return TABS_BY_ROLE[role][0].path
 }
 
 export function allowedPaths(role: Role): string[] {
   const tabs = TABS_BY_ROLE[role].map((tab) => tab.path)
-  return role === 'LEAD_TEACHER' ? [...tabs, ...ADMIN_PATHS, ...STUDENT_PATHS] : tabs
+  return role === 'LEAD_TEACHER' ? [...tabs, ...ADMIN_PATHS, ...STUDENT_PATHS, ...SLOT_PATHS] : tabs
 }
 
 /** Whether a concrete path fits a route pattern: same segments, `:name` matching any non-empty one. */

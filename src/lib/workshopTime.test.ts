@@ -1,4 +1,5 @@
 import {
+  addDays,
   addMonths,
   firstOfMonth,
   lessonStarted,
@@ -43,5 +44,14 @@ describe('workshopTime', () => {
     expect(monthlyStartRange('2026-11-20')).toEqual({ min: '2026-11-01', max: '2026-12-20' })
     expect(monthlyStartRange('2026-12-31')).toEqual({ min: '2026-12-01', max: '2027-01-31' })
     expect(monthlyStartRange('2027-01-31')).toEqual({ min: '2027-01-01', max: '2027-02-28' })
+  })
+})
+
+describe('addDays', () => {
+  it('RF06_addsDaysAcrossMonthsAndYears', () => {
+    expect(addDays('2026-11-21', 6)).toBe('2026-11-27')
+    expect(addDays('2026-11-28', 6)).toBe('2026-12-04')
+    expect(addDays('2026-12-30', 6)).toBe('2027-01-05')
+    expect(addDays('2028-02-27', 2)).toBe('2028-02-29')
   })
 })

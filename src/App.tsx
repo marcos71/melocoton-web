@@ -2,7 +2,7 @@ import type { ReactElement } from 'react'
 import { Navigate, Route, Routes } from 'react-router'
 import { RedirectIfAuthenticated, RequireSession } from './auth/guards'
 import { useSession } from './auth/session'
-import { ADMIN_PATHS, STUDENT_PATHS, homePath } from './layout/access'
+import { ADMIN_PATHS, SLOT_PATHS, STUDENT_PATHS, homePath } from './layout/access'
 import { AppLayout } from './layout/AppLayout'
 import { PublicLayout } from './layout/PublicLayout'
 import { TABS_BY_ROLE } from './layout/tabs'
@@ -12,12 +12,15 @@ import { ComingSoonScreen } from './screens/ComingSoonScreen'
 import { ForgotPasswordScreen } from './screens/ForgotPasswordScreen'
 import { HealthScreen } from './screens/HealthScreen'
 import { DropInBookingScreen } from './screens/DropInBookingScreen'
+import { EditSlotScreen } from './screens/EditSlotScreen'
 import { EditStudentScreen } from './screens/EditStudentScreen'
 import { FixedSlotScreen } from './screens/FixedSlotScreen'
 import { LoginScreen } from './screens/LoginScreen'
 import { NewAssistantTeacherScreen } from './screens/NewAssistantTeacherScreen'
+import { NewSlotScreen } from './screens/NewSlotScreen'
 import { NewStudentScreen } from './screens/NewStudentScreen'
 import { SetPasswordScreen } from './screens/SetPasswordScreen'
+import { SlotsScreen } from './screens/SlotsScreen'
 import { StudentProfileScreen } from './screens/StudentProfileScreen'
 import { StudentsScreen } from './screens/StudentsScreen'
 
@@ -39,8 +42,15 @@ const STUDENT_SCREENS: Partial<Record<(typeof STUDENT_PATHS)[number], ReactEleme
   '/students/:id/drop-in/new': <DropInBookingScreen />,
 }
 
+/** Screens of the Turnos tab beyond the list (DI-62): the lead teacher only. */
+const SLOT_SCREENS: Record<(typeof SLOT_PATHS)[number], ReactElement> = {
+  '/slots/new': <NewSlotScreen />,
+  '/slots/:id/edit': <EditSlotScreen />,
+}
+
 /** Tabs that already have their screen; the others show the placeholder. */
 const TAB_SCREENS: Record<string, ReactElement> = {
+  '/slots': <SlotsScreen />,
   '/students': <StudentsScreen />,
 }
 
@@ -105,6 +115,8 @@ function RoleRoutes() {
             const element = STUDENT_SCREENS[path]
             return element ? <Route key={path} path={path} element={element} /> : null
           })}
+        {user.role === 'LEAD_TEACHER' &&
+          SLOT_PATHS.map((path) => <Route key={path} path={path} element={SLOT_SCREENS[path]} />)}
         <Route path="*" element={<Navigate to={home} replace />} />
       </Route>
     </Routes>

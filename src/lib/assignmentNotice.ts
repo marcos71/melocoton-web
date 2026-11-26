@@ -14,7 +14,8 @@ export function assignmentNotice(result: FixedSlotAssignment, previous: StudentP
         (lesson) =>
           `${formatLessonDate(lesson.lessonDate)}: ${lesson.occupancy} alumnos para ${lesson.capacity} lugares`,
       ),
-      footer: 'Las clases fijas se guardaron igual.',
+      footer:
+        'Las clases fijas se guardaron igual. Para resolverlo, cancelá alguna clase suelta de esas fechas.',
       link: { to: '/slots', label: 'Ver en Turnos' },
     }
   }

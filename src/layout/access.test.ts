@@ -40,3 +40,24 @@ describe('canUsePath', () => {
     expect(canUsePath('ASSISTANT_TEACHER', '/admin')).toBe(false)
   })
 })
+
+describe('canUsePath: slots', () => {
+  it('RF06_theLeadTeacherReachesTheSlotRoutes', () => {
+    expect(canUsePath('LEAD_TEACHER', '/slots')).toBe(true)
+    expect(canUsePath('LEAD_TEACHER', '/slots/new')).toBe(true)
+    expect(canUsePath('LEAD_TEACHER', '/slots/7/edit')).toBe(true)
+    expect(canUsePath('LEAD_TEACHER', '/slots/7/edit?x=1')).toBe(true)
+  })
+
+  it('RF06_aSlotPathNeverMatchesOtherShapes', () => {
+    expect(canUsePath('LEAD_TEACHER', '/slots/7')).toBe(false)
+    expect(canUsePath('LEAD_TEACHER', '/slots/7/edit/more')).toBe(false)
+    expect(canUsePath('LEAD_TEACHER', '/slots//edit')).toBe(false)
+  })
+
+  it.each(['STUDENT', 'ASSISTANT_TEACHER'] as const)('RF06_%sNeverReachesTheSlotRoutes', (role) => {
+    expect(canUsePath(role, '/slots')).toBe(false)
+    expect(canUsePath(role, '/slots/new')).toBe(false)
+    expect(canUsePath(role, '/slots/7/edit')).toBe(false)
+  })
+})

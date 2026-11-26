@@ -1,4 +1,5 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { focusManager } from '@tanstack/react-query'
+import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { errorResponse, jsonResponse, renderApp, requestsTo, stubApi } from '../test/utils'
 import {
@@ -51,9 +52,9 @@ describe('FixedSlotScreen: assign', () => {
     expect(heading).toHaveFocus()
     const radios = await screen.findAllByRole('radio')
     expect(radios.map((radio) => radio.closest('label')?.textContent)).toEqual([
-      'Lunes 10:00 a 12:00Cupo: 8',
-      'Martes 18:00 a 20:00Cupo: 8',
-      'Jueves 18:00 a 20:00Cupo: 8',
+      'Lunes 10:00 a 12:00Fijos: 3 de 12',
+      'Martes 18:00 a 20:00Fijos: 3 de 12',
+      'Jueves 18:00 a 20:00Fijos: 3 de 12',
     ])
     radios.forEach((radio) => expect(radio).not.toBeChecked())
     expect(screen.queryByText(/Turno actual/)).not.toBeInTheDocument()
@@ -101,9 +102,9 @@ describe('FixedSlotScreen: assign', () => {
     renderSlot(12)
 
     const thursday = await screen.findByRole('radio', { name: /Jueves/ })
-    expect(thursday).toHaveAccessibleDescription('Cupo: 8 · 1 clase excedida')
+    expect(thursday).toHaveAccessibleDescription('Fijos: 3 de 12 · 1 clase excedida')
     expect(screen.getByRole('radio', { name: /Lunes/ })).toHaveAccessibleDescription(
-      'Cupo: 8 · 3 clases excedidas',
+      'Fijos: 3 de 12 · 3 clases excedidas',
     )
     await userEvent.click(thursday)
     expect(thursday).toBeChecked()
@@ -367,14 +368,42 @@ describe('FixedSlotScreen: states', () => {
     expect(screen.queryByRole('radio')).not.toBeInTheDocument()
   })
 
-  it('RF08_withoutActiveSlotsItSendsToTheSlotsScreen', async () => {
+  it('RF08_withoutSlotsItSaysSoAndOffersToGoToTurnos', async () => {
     stubApi({ ...studentRoute(luisProfile), [SLOTS]: () => jsonResponse(200, []) })
     renderSlot(12)
 
-    expect(await screen.findByText(/Todavía no hay turnos\./)).toHaveTextContent(
-      'Todavía no hay turnos. Crealos en Turnos.',
+    expect(await screen.findByText('Todavía no hay turnos. Primero hay que crearlos.')).toBeInTheDocument()
+    expect(within(screen.getByRole('main')).getByRole('link', { name: 'Ir a Turnos' })).toHaveAttribute(
+      'href',
+      '/slots',
     )
-    expect(within(screen.getByRole('main')).getByRole('link', { name: 'Turnos' })).toHaveAttribute('href', '/slots')
+  })
+
+  it('RF08_aFailedRereadOfTheSlotsKeepsTheOptionsAndTheChoice', async () => {
+    let reads = 0
+    const fetchFn = stubApi({
+      ...studentRoute(luisProfile),
+      [SLOTS]: () =>
+        ++reads === 1
+          ? jsonResponse(200, [thursdaySlot, mondaySlot, tuesdaySlot])
+          : errorResponse(500, 'internal_error', 'x'),
+    })
+    try {
+      renderSlot(12)
+      await chooseThursday()
+
+      act(() => {
+        focusManager.setFocused(false)
+        focusManager.setFocused(true)
+      })
+      await waitFor(() => expect(requestsTo(fetchFn, SLOTS).length).toBeGreaterThanOrEqual(3))
+
+      expect(screen.getByRole('radio', { name: /Jueves 18:00 a 20:00/ })).toBeChecked()
+      expect(screen.getByRole('button', { name: 'Asignar turno fijo' })).toBeInTheDocument()
+      expect(screen.queryByText('No se pudieron cargar los turnos.')).not.toBeInTheDocument()
+    } finally {
+      focusManager.setFocused(undefined)
+    }
   })
 
   it('RF08_showsALoadingTextForTheSlotsAndAnErrorWithRetryIfTheyFail', async () => {
@@ -400,5 +429,63 @@ describe('FixedSlotScreen: states', () => {
     renderSlot(99)
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Error: No encontramos a este alumno.')
+  })
+})
+
+describe('FixedSlotScreen: full slots (DI-66)', () => {
+  const fullThursday = { ...thursdaySlot, fixedStudents: 12 }
+
+  it('DI66_aSlotWithAllItsFixedPlacesTakenIsUnavailableWithTheReasonInText', async () => {
+    stubApi({
+      ...studentRoute(luisProfile),
+      [SLOTS]: () => jsonResponse(200, [fullThursday, mondaySlot]),
+    })
+    renderSlot(12)
+
+    const thursday = await screen.findByRole('radio', { name: /Jueves/ })
+    expect(thursday).toHaveAttribute('aria-disabled', 'true')
+    expect(thursday).toHaveAccessibleDescription('Completo: tiene 12 alumnos fijos.')
+    await userEvent.click(thursday)
+    expect(thursday).not.toBeChecked()
+    expect(screen.getByRole('radio', { name: /Lunes/ })).not.toHaveAttribute('aria-disabled')
+    expect(screen.getByRole('radio', { name: /Lunes/ })).toHaveAccessibleDescription('Fijos: 3 de 12')
+  })
+
+  it('DI66_theStudentsOwnFullSlotKeepsItsOwnReason', async () => {
+    stubApi({
+      ...studentRoute(luciaProfile),
+      [SLOTS]: () => jsonResponse(200, [{ ...tuesdaySlot, fixedStudents: 12 }, thursdaySlot]),
+    })
+    renderSlot(11)
+
+    const current = await screen.findByRole('radio', { name: /Martes/ })
+    expect(current).toHaveAccessibleDescription('Es su turno actual.')
+    expect(screen.getByRole('radio', { name: /Jueves/ })).not.toHaveAttribute('aria-disabled')
+  })
+
+  it('DI66_fixed_students_fullShowsItsTextClearsTheChoiceAndReadsTheSlotsAgain', async () => {
+    const fetchFn = stubApi({
+      ...studentRoute(luisProfile),
+      [SLOTS]: () => jsonResponse(200, [thursdaySlot, mondaySlot]),
+      [PUT_12]: () =>
+        jsonResponse(409, {
+          error: {
+            code: 'fixed_students_full',
+            message: 'Completo.',
+            details: { capacity: 12, fixedStudents: 12 },
+          },
+        }),
+    })
+    renderSlot(12)
+    await chooseThursday()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Asignar turno fijo' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Error: Ese turno ya tiene 12 alumnos fijos. Elegí otro turno.',
+    )
+    expect(screen.getByRole('radio', { name: /Jueves/ })).not.toBeChecked()
+    expect(screen.getByRole('button', { name: 'Asignar turno fijo' })).toHaveAttribute('aria-disabled', 'true')
+    await waitFor(() => expect(requestsTo(fetchFn, SLOTS).length).toBeGreaterThanOrEqual(2))
   })
 })

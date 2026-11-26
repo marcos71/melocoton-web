@@ -19,6 +19,15 @@ describe('toApiError', () => {
     expect(error.message).toBe('No quedan lugares en este turno.')
   })
 
+  it('DI23_keepsTheDetailsOfTheErrorBodyWhenThereAreAny', () => {
+    const error = toApiError(409, {
+      error: { code: 'slot_overlap', message: 'x', details: { slotId: 3, dayOfWeek: 2 } },
+    })
+
+    expect(error.details).toEqual({ slotId: 3, dayOfWeek: 2 })
+    expect(toApiError(409, { error: { code: 'x', message: 'y' } }).details).toBeUndefined()
+  })
+
   it.each([
     ['html', '<html>Bad gateway</html>'],
     ['empty', undefined],

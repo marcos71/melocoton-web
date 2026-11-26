@@ -34,7 +34,8 @@ describe('assignmentNotice', () => {
       kind: 'warning',
       text: 'El jueves 18:00 a 20:00 tiene clases excedidas.',
       items: ['Jue 3 de dic: 9 alumnos para 8 lugares', 'Jue 10 de dic: 10 alumnos para 8 lugares'],
-      footer: 'Las clases fijas se guardaron igual.',
+      footer:
+        'Las clases fijas se guardaron igual. Para resolverlo, cancelá alguna clase suelta de esas fechas.',
       link: { to: '/slots', label: 'Ver en Turnos' },
     })
   })
