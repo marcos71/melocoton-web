@@ -1,0 +1,35 @@
+.tag {
+  display: inline-block;
+  padding: 0.125rem 0.625rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+  color: var(--color-ink);
+  background: var(--color-paper);
+  border-radius: 0.25rem;
+}
+
+/* En proceso: dashed ink border on paper. */
+.inProgress {
+  border: 2px dashed var(--color-ink);
+}
+
+/* Bizcochada: muted fill with a thin border. */
+.bisqueFired {
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-text-muted);
+}
+
+/* Esmaltada: ink text on the border-gray fill (about 5.5 to 1). */
+.glazed {
+  background: var(--color-border);
+  border: 2px solid var(--color-border);
+}
+
+/* Terminada: ink fill with paper text. */
+.finished {
+  color: var(--color-paper);
+  background: var(--color-ink);
+  border: 2px solid var(--color-ink);
+}

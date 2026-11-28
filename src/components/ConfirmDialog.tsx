@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type KeyboardEvent } from 'react'
+import { useEffect, useId, useRef, type KeyboardEvent, type ReactNode } from 'react'
 import styles from './ConfirmDialog.module.css'
 import screenStyles from '../screens/Screen.module.css'
 
@@ -9,6 +9,8 @@ type ConfirmDialogProps = {
   pendingLabel: string
   /** Text of the safe option; use a specific one when "Cancelar" would be ambiguous. */
   cancelLabel?: string
+  /** Extra text between the description and the buttons; keep it non-focusable (the focus trap knows only the two buttons). */
+  children?: ReactNode
   pending: boolean
   onConfirm: () => void
   onCancel: () => void
@@ -21,6 +23,7 @@ export function ConfirmDialog({
   confirmLabel,
   pendingLabel,
   cancelLabel = 'Cancelar',
+  children,
   pending,
   onConfirm,
   onCancel,
@@ -71,6 +74,7 @@ export function ConfirmDialog({
         <p id={descriptionId} className={styles.description}>
           {description}
         </p>
+        {children}
         <div className={styles.actions}>
           <button
             ref={cancelRef}

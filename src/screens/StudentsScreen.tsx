@@ -14,6 +14,7 @@ import { StatusBadge } from '../components/StatusBadge'
 import { StatusFilter } from '../components/StatusFilter'
 import { TextField } from '../components/TextField'
 import { bySlotTime, enrollmentLabel, formatSlot } from '../lib/format'
+import { normalize } from '../lib/text'
 import { useHeadingFocus } from '../lib/useHeadingFocus'
 import screenStyles from './Screen.module.css'
 import styles from './StudentsScreen.module.css'
@@ -47,14 +48,6 @@ function parseType(raw: string | null): UrlType | null {
 
 function parseSlot(raw: string | null): number | null {
   return raw !== null && /^[1-9]\d{0,14}$/.test(raw) ? Number(raw) : null
-}
-
-/** Lower case and without accents, so "lucia" finds "Lucía". */
-function normalize(text: string): string {
-  return text
-    .normalize('NFD')
-    .replace(/\p{M}/gu, '')
-    .toLowerCase()
 }
 
 function turnText(student: StudentItem): string | null {

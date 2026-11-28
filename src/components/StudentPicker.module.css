@@ -1,0 +1,205 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.label {
+  font-weight: 600;
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  font: inherit;
+  text-align: left;
+  color: var(--color-ink);
+  background: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.trigger[data-invalid] {
+  border: 3px solid var(--color-ink);
+}
+
+.trigger[data-focus-visible] {
+  outline: 3px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+/* Not tappable: its text says why. */
+.loading {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  color: var(--color-text-muted);
+  background: var(--color-paper);
+  border: 2px dashed var(--color-text-muted);
+  border-radius: 0.5rem;
+}
+
+.failed {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.failed p {
+  margin: 0;
+}
+
+/* The panel: full screen on the phone, a centered box on wide screens (DI-90). */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: var(--visual-viewport-height, 100dvh);
+}
+
+/* On the phone it fills the overlay, so it follows the visual viewport (the keyboard shrinks it). */
+.panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: var(--color-paper);
+}
+
+@media (min-width: 600px) {
+  .overlay {
+    background: color-mix(in srgb, var(--color-ink) 60%, transparent);
+  }
+
+  .panel {
+    height: auto;
+    max-width: 480px;
+    max-height: 80vh;
+    border: 2px solid var(--color-ink);
+    border-radius: 0.5rem;
+  }
+}
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 0.75rem;
+  min-height: 0;
+  padding: 1rem;
+  outline: none;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+/* The search takes the row; "Cancelar" keeps its own width, like the iOS search. */
+.search {
+  flex: 1;
+  min-width: 0;
+}
+
+/* The placeholder shows the same words; the label stays for screen readers. */
+.searchLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.cancel {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0 0.25rem;
+  font: inherit;
+  color: var(--color-ink);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.cancel[data-focus-visible] {
+  outline: 3px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+.input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  font: inherit;
+  color: var(--color-ink);
+  background: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+}
+
+.input:focus-visible {
+  outline: 3px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+.results {
+  min-height: 1.5rem;
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+/* Only the list scrolls: the header and the search stay in view with the keyboard open. */
+.list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  outline: none;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+}
+
+.option[data-focused] {
+  outline: 3px solid var(--color-ink);
+  outline-offset: -3px;
+}
+
+.option[data-selected] {
+  font-weight: 700;
+}
+
+.option[data-pressed] {
+  background: var(--color-surface-muted);
+}
+
+.empty {
+  margin: 0;
+  padding: 0.75rem;
+  color: var(--color-text-muted);
+}

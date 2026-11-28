@@ -140,6 +140,9 @@ function Profile({ student }: { student: StudentProfile }) {
             <Link className={screenStyles.secondaryButton} to={`/students/${student.id}/edit`} state={childState}>
               Editar datos
             </Link>
+            <Link className={screenStyles.secondaryButton} to={`/pieces?student=${student.id}`}>
+              Ver sus piezas
+            </Link>
           </section>
 
           {monthly && (

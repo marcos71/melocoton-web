@@ -32,3 +32,17 @@ describe('StatusFilter', () => {
     expect(screen.getByRole('group', { name: 'Modalidad' })).toBeInTheDocument()
   })
 })
+
+describe('StatusFilter pressed option', () => {
+  it('RNF02_thePressedOptionKeepsAriaPressedAndItsOwnClassForTheCheckMark', () => {
+    render(<StatusFilter options={OPTIONS} value="a" onChange={() => {}} />)
+
+    const pressed = screen.getByRole('button', { name: 'Uno' })
+    const other = screen.getByRole('button', { name: 'Dos' })
+
+    expect(pressed).toHaveAttribute('aria-pressed', 'true')
+    // The check mark is a ::before of this class (jsdom has no CSS), so only the class can be asserted.
+    expect(pressed.className).toMatch(/pressed/)
+    expect(other.className).not.toMatch(/pressed/)
+  })
+})

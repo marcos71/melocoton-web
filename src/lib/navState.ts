@@ -32,8 +32,8 @@ export function noticeFromState(state: unknown): NoticeData | null {
   return isNotice(notice) ? notice : null
 }
 
-/** The list URL kept in the state; only paths of the students tab are accepted. */
-export function listFromState(state: unknown): string | null {
+/** The list URL kept in the state; only paths of the given tab are accepted (the students tab by default). */
+export function listFromState(state: unknown, tab = '/students'): string | null {
   const from = (state as StudentNavState | null)?.from
-  return typeof from === 'string' && /^\/students(\?|$)/.test(from) ? from : null
+  return typeof from === 'string' && new RegExp(`^${tab}(\\?|$)`).test(from) ? from : null
 }

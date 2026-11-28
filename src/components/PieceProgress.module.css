@@ -1,0 +1,30 @@
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.segments {
+  display: flex;
+  flex: 1;
+  gap: 0.25rem;
+  max-width: 12rem;
+}
+
+.segment {
+  flex: 1;
+  height: 0.5rem;
+  background: var(--color-paper);
+  border: 1px solid var(--color-ink);
+  border-radius: 0.25rem;
+}
+
+.done {
+  background: var(--color-ink);
+}
+
+.text {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
