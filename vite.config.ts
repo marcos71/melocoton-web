@@ -25,5 +25,7 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     restoreMocks: true,
     unstubGlobals: true,
+    // Tests never depend on a developer's local .env.local.
+    env: { VITE_API_URL: 'http://localhost:8080' },
   },
 })
