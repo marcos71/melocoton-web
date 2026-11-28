@@ -167,6 +167,111 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pieces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the pieces of all students, most recently updated first (RF-31, RF-32, DI-71)
+         * @description Pieces of inactive students are included; voided pieces are not (DI-74). studentId and status narrow the list when sent. advanceTo and revertTo are the actions each piece allows (DI-70). Paged with a cursor (DI-87): send the nextCursor of a page to get the next one; it is null on the last page.
+         */
+        get: operations["listPieces"];
+        put?: never;
+        /**
+         * A teacher creates a piece for a student, In progress (CU-12, RF-24, RF-25)
+         * @description The student must be active. The name must not be used by another piece of the student that is neither voided nor finished (DI-26, DI-73).
+         */
+        post: operations["createPiece"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pieces/bulk-change-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Advance several pieces of the same status together (CU-14, RF-29, RF-30, D-06)
+         * @description All or nothing. Every item carries the status the person saw; they must all be the same and not Terminada. A bulk change only advances. If any piece changed or was voided meanwhile, nothing changes and the response lists them all.
+         */
+        post: operations["bulkChangePieceStatus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pieces/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A piece with its history, newest event first (RF-28) */
+        get: operations["getPiece"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * A teacher edits the name and notes of a piece in any status (RF-27)
+         * @description The notes replace the stored value. Any other field is rejected.
+         */
+        patch: operations["editPiece"];
+        trace?: never;
+    };
+    "/api/v1/pieces/{id}/change-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Advance a piece one step or revert it one step (CU-13, RF-26, RN-04, D-34)
+         * @description expectedStatus is the status the person saw; if the piece has another one nothing changes. A revert is recorded as a correction (RN-05).
+         */
+        post: operations["changePieceStatus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pieces/{id}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Void a piece with a reason (CU-13, RF-56, RN-20, DI-74)
+         * @description The piece disappears from every list and read; its history stays.
+         */
+        post: operations["voidPiece"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/slots": {
         parameters: {
             query?: never;
@@ -234,6 +339,71 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/directory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The students' name and phone, for the lead and the assistant teacher (RF-24, RF-62, D-29, DI-76)
+         * @description Only id, name, phone and active. status defaults to ACTIVE; ALL includes inactive students.
+         */
+        get: operations["listStudentDirectory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/pieces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The student's own pieces, most recently updated first (RF-31, DI-71)
+         * @description Voided pieces are not listed (DI-74). Paged with a cursor (DI-87): send the nextCursor of a page to get the next one; it is null on the last page.
+         */
+        get: operations["listMyPieces"];
+        put?: never;
+        /**
+         * The student creates a piece, In progress (CU-12, RF-24, RF-25)
+         * @description The name must not be used by another piece of the student that is neither voided nor finished (DI-26, DI-73).
+         */
+        post: operations["createMyPiece"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/pieces/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One of the student's own pieces with its history (RF-28) */
+        get: operations["getMyPiece"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * The student edits the name and notes of a piece that is In progress (RF-27, RN-20)
+         * @description The notes replace the stored value. Any other field, the status included, is rejected.
+         */
+        patch: operations["editMyPiece"];
         trace?: never;
     };
     "/api/v1/students/{id}": {
@@ -374,11 +544,58 @@ export interface components {
             /** @enum {string} */
             type: "FIXED" | "DROP_IN" | "MAKEUP";
         };
+        BulkChangeItemRequest: {
+            /** @enum {string} */
+            expectedStatus: "IN_PROGRESS" | "BISQUE_FIRED" | "GLAZED" | "FINISHED";
+            /** Format: int64 */
+            pieceId: number;
+        };
+        BulkChangePieceStatusRequest: {
+            items: components["schemas"]["BulkChangeItemRequest"][];
+        };
+        BulkChangeResponse: {
+            /** Format: int32 */
+            count: number;
+            /** @enum {string} */
+            newStatus: "IN_PROGRESS" | "BISQUE_FIRED" | "GLAZED" | "FINISHED";
+            /** Format: uuid */
+            operationId: string;
+            /**
+             * Format: int32
+             * @description How many students own the changed pieces
+             */
+            studentCount: number;
+        };
+        ChangePieceStatusRequest: {
+            /** @enum {string} */
+            expectedStatus: "IN_PROGRESS" | "BISQUE_FIRED" | "GLAZED" | "FINISHED";
+            /** @enum {string} */
+            newStatus: "IN_PROGRESS" | "BISQUE_FIRED" | "GLAZED" | "FINISHED";
+        };
+        ConflictingPiece: {
+            /** Format: int64 */
+            id: number;
+            name: string;
+            /** @enum {string} */
+            reason: "CHANGED" | "VOIDED";
+        };
         CreateAssistantTeacherRequest: {
             /** Format: email */
             email: string;
             name: string;
             phone: string;
+        };
+        CreateMyPieceRequest: {
+            name: string;
+            /** @description Blank means no notes */
+            notes?: string | null;
+        };
+        CreatePieceRequest: {
+            name: string;
+            /** @description Blank means no notes */
+            notes?: string | null;
+            /** Format: int64 */
+            studentId: number;
         };
         CreateSlotRequest: {
             /**
@@ -410,6 +627,11 @@ export interface components {
             monthlyStartDate?: string | null;
             name: string;
             phone: string;
+        };
+        EditPieceRequest: {
+            name: string;
+            /** @description Null or blank clears the notes */
+            notes?: string | null;
         };
         ErrorBody: {
             /** @description Stable identifier in English, for the client */
@@ -510,6 +732,58 @@ export interface components {
             expiresAt: string;
             user: components["schemas"]["SessionUserResponse"];
         };
+        MyPieceDetailResponse: {
+            /**
+             * Format: date-time
+             * @description ISO-8601 instant in UTC
+             */
+            createdAt: string;
+            editable: boolean;
+            /** @description Newest first */
+            history: components["schemas"]["MyPieceHistoryEntryResponse"][];
+            /** Format: int64 */
+            id: number;
+            name: string;
+            notes?: string | null;
+            /** @enum {string} */
+            status: "IN_PROGRESS" | "BISQUE_FIRED" | "GLAZED" | "FINISHED";
+            /**
+             * Format: date-time
+             * @description The last history event (DI-71)
+             */
+            updatedAt: string;
+        };
+        MyPieceHistoryEntryResponse: {
+            correction: boolean;
+            /** @enum {string} */
+            eventType: "CREATED" | "ADVANCED" | "REVERTED" | "VOIDED";
+            /** @enum {string|null} */
+            newStatus?: "IN_PROGRESS" | "BISQUE_FIRED" | "GLAZED" | "FINISHED" | null;
+            /**
+             * Format: date-time
+             * @description ISO-8601 instant in UTC
+             */
+            occurredAt: string;
+            /** @enum {string|null} */
+            previousStatus?: "IN_PROGRESS" | "BISQUE_FIRED" | "GLAZED" | "FINISHED" | null;
+        };
+        MyPieceItemResponse: {
+            /** Format: int64 */
+            id: number;
+            name: string;
+            /** @enum {string} */
+            status: "IN_PROGRESS" | "BISQUE_FIRED" | "GLAZED" | "FINISHED";
+            /**
+             * Format: date-time
+             * @description ISO-8601 instant in UTC
+             */
+            updatedAt: string;
+        };
+        MyPiecePageResponse: {
+            items: components["schemas"]["MyPieceItemResponse"][];
+            /** @description Pass as cursor to get the next page; null on the last page */
+            nextCursor?: string | null;
+        };
         OverbookedLessonResponse: {
             /** Format: int32 */
             capacity: number;
@@ -520,6 +794,86 @@ export interface components {
         };
         PasswordResetRequest: {
             email: string;
+        };
+        PieceConflictDetails: {
+            pieces: components["schemas"]["ConflictingPiece"][];
+        };
+        PieceDetailResponse: {
+            /** @enum {string|null} */
+            advanceTo?: "IN_PROGRESS" | "BISQUE_FIRED" | "GLAZED" | "FINISHED" | null;
+            /**
+             * Format: date-time
+             * @description ISO-8601 instant in UTC
+             */
+            createdAt: string;
+            /** @description Newest first */
+            history: components["schemas"]["PieceHistoryEntryResponse"][];
+            /** Format: int64 */
+            id: number;
+            name: string;
+            notes?: string | null;
+            /** @enum {string|null} */
+            revertTo?: "IN_PROGRESS" | "BISQUE_FIRED" | "GLAZED" | "FINISHED" | null;
+            /** @enum {string} */
+            status: "IN_PROGRESS" | "BISQUE_FIRED" | "GLAZED" | "FINISHED";
+            student: components["schemas"]["PieceStudentResponse"];
+            /**
+             * Format: date-time
+             * @description The last history event (DI-71)
+             */
+            updatedAt: string;
+        };
+        PieceHistoryEntryResponse: {
+            changedBy: components["schemas"]["PieceUserResponse"];
+            correction: boolean;
+            /** @enum {string} */
+            eventType: "CREATED" | "ADVANCED" | "REVERTED" | "VOIDED";
+            /** @enum {string|null} */
+            newStatus?: "IN_PROGRESS" | "BISQUE_FIRED" | "GLAZED" | "FINISHED" | null;
+            /**
+             * Format: date-time
+             * @description ISO-8601 instant in UTC
+             */
+            occurredAt: string;
+            /**
+             * Format: uuid
+             * @description Groups the pieces of one bulk change
+             */
+            operationId: string;
+            /** @enum {string|null} */
+            previousStatus?: "IN_PROGRESS" | "BISQUE_FIRED" | "GLAZED" | "FINISHED" | null;
+        };
+        PieceItemResponse: {
+            /** @enum {string|null} */
+            advanceTo?: "IN_PROGRESS" | "BISQUE_FIRED" | "GLAZED" | "FINISHED" | null;
+            /** Format: int64 */
+            id: number;
+            name: string;
+            /** @enum {string|null} */
+            revertTo?: "IN_PROGRESS" | "BISQUE_FIRED" | "GLAZED" | "FINISHED" | null;
+            /** @enum {string} */
+            status: "IN_PROGRESS" | "BISQUE_FIRED" | "GLAZED" | "FINISHED";
+            student: components["schemas"]["PieceStudentResponse"];
+            /**
+             * Format: date-time
+             * @description ISO-8601 instant in UTC
+             */
+            updatedAt: string;
+        };
+        PiecePageResponse: {
+            items: components["schemas"]["PieceItemResponse"][];
+            /** @description Pass as cursor to get the next page; null on the last page */
+            nextCursor?: string | null;
+        };
+        PieceStudentResponse: {
+            /** Format: int64 */
+            id: number;
+            name: string;
+        };
+        PieceUserResponse: {
+            /** Format: int64 */
+            id: number;
+            name: string;
         };
         SessionResponse: {
             user: components["schemas"]["SessionUserResponse"];
@@ -598,6 +952,13 @@ export interface components {
              */
             startTime: string;
         };
+        StudentDirectoryEntryResponse: {
+            active: boolean;
+            /** Format: int64 */
+            id: number;
+            name: string;
+            phone: string;
+        };
         StudentItemResponse: {
             active: boolean;
             /** @enum {string} */
@@ -675,6 +1036,9 @@ export interface components {
         UpdateStudentRequest: {
             name?: string | null;
             phone?: string | null;
+        };
+        VoidPieceRequest: {
+            reason: string;
         };
     };
     responses: never;
@@ -1112,6 +1476,394 @@ export interface operations {
             };
         };
     };
+    listPieces: {
+        parameters: {
+            query?: {
+                studentId?: number;
+                status?: "IN_PROGRESS" | "BISQUE_FIRED" | "GLAZED" | "FINISHED";
+                /** @description The nextCursor of the previous page; omit for the first page */
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The pieces */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PiecePageResponse"];
+                };
+            };
+            /** @description validation_error: status is not a piece status, the cursor is not valid or limit is not between 1 and 100 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description too_many_requests: more than 60 requests in a minute from the same user */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    createPiece: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePieceRequest"];
+            };
+        };
+        responses: {
+            /** @description The new piece */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PieceDetailResponse"];
+                };
+            };
+            /** @description validation_error: the name is missing, blank or longer than 100 characters, or the notes are longer than 500 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description not_found: the id is not a student */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description student_inactive. duplicate_piece_name */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description too_many_requests: more than 60 requests in a minute from the same user */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    bulkChangePieceStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkChangePieceStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description The summary of the change */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BulkChangeResponse"];
+                };
+            };
+            /** @description validation_error: empty selection, repeated piece or more than 500 items. mixed_statuses: the items have different expected statuses. no_next_status: the pieces are Terminadas */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description not_found: a piece of the selection does not exist */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description status_conflict: some pieces changed or are voided, details is PieceConflictDetails */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description too_many_requests: more than 60 requests in a minute from the same user */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getPiece: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The piece */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PieceDetailResponse"];
+                };
+            };
+            /** @description not_found: the piece does not exist or is voided (DI-74) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description too_many_requests: more than 60 requests in a minute from the same user */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    editPiece: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditPieceRequest"];
+            };
+        };
+        responses: {
+            /** @description The piece, edited */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PieceDetailResponse"];
+                };
+            };
+            /** @description validation_error: invalid name or notes, or a field that cannot be edited */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description not_found: the piece does not exist or is voided (DI-74) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description status_conflict: the piece was voided meanwhile, details is PieceConflictDetails. duplicate_piece_name */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description too_many_requests: more than 60 requests in a minute from the same user */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    changePieceStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangePieceStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description The piece, changed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PieceDetailResponse"];
+                };
+            };
+            /** @description invalid_transition: newStatus is neither the next nor the previous status. validation_error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description not_found: the piece does not exist or is voided (DI-74) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description status_conflict: the piece changed or was voided meanwhile, details is PieceConflictDetails. duplicate_piece_name: reverting a Terminada piece whose name another active piece of the student now uses */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description too_many_requests: more than 60 requests in a minute from the same user */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    voidPiece: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VoidPieceRequest"];
+            };
+        };
+        responses: {
+            /** @description The piece was voided */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description validation_error: the reason is missing, blank or longer than 500 characters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description not_found: the piece does not exist or is voided (DI-74) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description status_conflict: the piece changed or was voided meanwhile, details is PieceConflictDetails */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description too_many_requests: more than 60 requests in a minute from the same user */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     list: {
         parameters: {
             query?: {
@@ -1433,6 +2185,250 @@ export interface operations {
                 };
             };
             /** @description email_already_used */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description too_many_requests: more than 60 requests in a minute from the same user */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    listStudentDirectory: {
+        parameters: {
+            query?: {
+                status?: "ACTIVE" | "INACTIVE" | "ALL";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The students, ordered by name */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StudentDirectoryEntryResponse"][];
+                };
+            };
+            /** @description validation_error: status has an invalid value */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description role_not_allowed: only the lead and the assistant teacher */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description too_many_requests: more than 60 requests in a minute from the same user */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    listMyPieces: {
+        parameters: {
+            query?: {
+                /** @description The nextCursor of the previous page; omit for the first page */
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The pieces */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MyPiecePageResponse"];
+                };
+            };
+            /** @description validation_error: the cursor is not valid or limit is not between 1 and 100 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description too_many_requests: more than 60 requests in a minute from the same user */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    createMyPiece: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMyPieceRequest"];
+            };
+        };
+        responses: {
+            /** @description The new piece */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MyPieceDetailResponse"];
+                };
+            };
+            /** @description validation_error: the name is missing, blank or longer than 100 characters, or the notes are longer than 500 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description duplicate_piece_name */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description too_many_requests: more than 60 requests in a minute from the same user */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getMyPiece: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The piece */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MyPieceDetailResponse"];
+                };
+            };
+            /** @description not_found: the piece does not exist, is voided or belongs to another student (DI-75) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description too_many_requests: more than 60 requests in a minute from the same user */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    editMyPiece: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditPieceRequest"];
+            };
+        };
+        responses: {
+            /** @description The piece, edited */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MyPieceDetailResponse"];
+                };
+            };
+            /** @description validation_error: invalid name or notes, or a field that cannot be edited */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description not_found: the piece does not exist, is voided or belongs to another student (DI-75) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description piece_not_editable: the piece is no longer In progress. duplicate_piece_name */
             409: {
                 headers: {
                     [name: string]: unknown;

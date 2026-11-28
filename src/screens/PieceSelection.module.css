@@ -1,0 +1,82 @@
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.hint {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+/* The whole card is the target: a label with a native checkbox. */
+.card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--color-ink);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.card:focus-within {
+  outline: 3px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+.checkbox {
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: 0;
+  accent-color: var(--color-ink);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+/* Above the tab bar (3.5 rem), which is sticky to the same edge. */
+.bar {
+  position: sticky;
+  bottom: calc(3.5rem + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.75rem 0;
+  background: var(--color-paper);
+  border-top: 2px solid var(--color-ink);
+}
+
+.counter {
+  margin: 0;
+  font-weight: 600;
+}
+
+.bar > * {
+  align-self: stretch;
+}
+
+.bar > div {
+  align-items: stretch;
+}
+
+.dialogText {
+  margin: 0;
+}
+
+.dialogBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}

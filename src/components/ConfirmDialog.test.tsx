@@ -80,3 +80,18 @@ describe('ConfirmDialog', () => {
     expect(screen.getByRole('button', { name: 'Cancelar' })).toBeDisabled()
   })
 })
+
+describe('ConfirmDialog extra content', () => {
+  it('rendersExtraContentBetweenDescriptionAndActions', () => {
+    renderDialog({ children: <p>Se aplica a todas o a ninguna.</p> })
+
+    const dialog = screen.getByRole('alertdialog')
+    const description = screen.getByText('Descripción')
+    const extra = screen.getByText('Se aplica a todas o a ninguna.')
+    const cancel = screen.getByRole('button', { name: 'Cancelar' })
+
+    expect(dialog).toContainElement(extra)
+    expect(description.compareDocumentPosition(extra) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(extra.compareDocumentPosition(cancel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+})

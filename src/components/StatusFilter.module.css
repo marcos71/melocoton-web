@@ -21,3 +21,8 @@
   color: var(--color-paper);
   background: var(--color-ink);
 }
+
+/* RNF-02: the pressed option also carries a check mark, not only the inversion. */
+.pressed::before {
+  content: '✓ ';
+}

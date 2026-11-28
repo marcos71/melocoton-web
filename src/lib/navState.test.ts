@@ -21,4 +21,13 @@ describe('navState', () => {
     expect(listFromState({ from: '/admin' })).toBeNull()
     expect(listFromState(null)).toBeNull()
   })
+
+  it('RF32_readsTheListUrlOfAnotherTabWhenAsked', () => {
+    expect(listFromState({ from: '/pieces?student=3&status=GLAZED' }, '/pieces')).toBe(
+      '/pieces?student=3&status=GLAZED',
+    )
+    expect(listFromState({ from: '/pieces' }, '/pieces')).toBe('/pieces')
+    expect(listFromState({ from: '/pieces/3' }, '/pieces')).toBeNull()
+    expect(listFromState({ from: '/students?q=a' }, '/pieces')).toBeNull()
+  })
 })

@@ -158,6 +158,19 @@ describe('StudentProfileScreen: monthly student', () => {
 
     expect(screen.queryByRole('button', { name: /Ver las/ })).not.toBeInTheDocument()
   })
+
+  it('DI57_seeTheirPiecesOpensPiecesFilteredByTheStudent', async () => {
+    stubApi({
+      ...profileRoute(11, luciaProfile),
+      'GET /api/v1/pieces': () => jsonResponse(200, { items: [], nextCursor: null }),
+      'GET /api/v1/students/directory': () => jsonResponse(200, []),
+    })
+    renderProfile(11)
+
+    await userEvent.click(await screen.findByRole('link', { name: 'Ver sus piezas' }))
+
+    expect(screen.getByTestId('location')).toHaveTextContent('/pieces?student=11')
+  })
 })
 
 describe('StudentProfileScreen: drop-in student', () => {

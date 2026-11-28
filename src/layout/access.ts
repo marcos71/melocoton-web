@@ -23,13 +23,26 @@ export const STUDENT_PATHS = [
 /** Routes of the Turnos tab beyond the list (docs/pantallas_turnos.md, 1.2): the lead teacher only. */
 export const SLOT_PATHS = ['/slots/new', '/slots/:id/edit'] as const
 
+/** Routes of the Piezas tab beyond the list: the student's own pieces and the teachers' (docs: DI-78). */
+export const PIECE_PATHS = ['/pieces/new', '/pieces/:id', '/pieces/:id/edit'] as const
+
+/** The teachers also void pieces (RF-56); a student never reaches that route. */
+export const TEACHER_PIECE_PATHS = [...PIECE_PATHS, '/pieces/:id/void'] as const
+
 export function homePath(role: Role): string {
   return TABS_BY_ROLE[role][0].path
 }
 
 export function allowedPaths(role: Role): string[] {
   const tabs = TABS_BY_ROLE[role].map((tab) => tab.path)
-  return role === 'LEAD_TEACHER' ? [...tabs, ...ADMIN_PATHS, ...STUDENT_PATHS, ...SLOT_PATHS] : tabs
+  switch (role) {
+    case 'LEAD_TEACHER':
+      return [...tabs, ...ADMIN_PATHS, ...STUDENT_PATHS, ...SLOT_PATHS, ...TEACHER_PIECE_PATHS]
+    case 'ASSISTANT_TEACHER':
+      return [...tabs, ...TEACHER_PIECE_PATHS]
+    case 'STUDENT':
+      return [...tabs, ...PIECE_PATHS]
+  }
 }
 
 /** Whether a concrete path fits a route pattern: same segments, `:name` matching any non-empty one. */

@@ -97,7 +97,10 @@ describe('LoginScreen', () => {
   })
 
   it('CU01_returnsToTheRememberedPathAfterLoggingIn', async () => {
-    stubApi({ 'POST /api/v1/auth/login': loginOk('LEAD_TEACHER') })
+    stubApi({
+      'POST /api/v1/auth/login': loginOk('LEAD_TEACHER'),
+      'GET /api/v1/pieces': () => jsonResponse(200, { items: [], nextCursor: null }),
+    })
     renderApp({ role: null, path: '/pieces' })
     expect(screen.getByTestId('location')).toHaveTextContent('/login')
 

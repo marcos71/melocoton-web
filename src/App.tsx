@@ -2,7 +2,14 @@ import type { ReactElement } from 'react'
 import { Navigate, Route, Routes } from 'react-router'
 import { RedirectIfAuthenticated, RequireSession } from './auth/guards'
 import { useSession } from './auth/session'
-import { ADMIN_PATHS, SLOT_PATHS, STUDENT_PATHS, homePath } from './layout/access'
+import {
+  ADMIN_PATHS,
+  PIECE_PATHS,
+  SLOT_PATHS,
+  STUDENT_PATHS,
+  TEACHER_PIECE_PATHS,
+  homePath,
+} from './layout/access'
 import { AppLayout } from './layout/AppLayout'
 import { PublicLayout } from './layout/PublicLayout'
 import { TABS_BY_ROLE } from './layout/tabs'
@@ -12,17 +19,26 @@ import { ComingSoonScreen } from './screens/ComingSoonScreen'
 import { ForgotPasswordScreen } from './screens/ForgotPasswordScreen'
 import { HealthScreen } from './screens/HealthScreen'
 import { DropInBookingScreen } from './screens/DropInBookingScreen'
+import { EditMyPieceScreen } from './screens/EditMyPieceScreen'
+import { EditPieceScreen } from './screens/EditPieceScreen'
 import { EditSlotScreen } from './screens/EditSlotScreen'
 import { EditStudentScreen } from './screens/EditStudentScreen'
 import { FixedSlotScreen } from './screens/FixedSlotScreen'
 import { LoginScreen } from './screens/LoginScreen'
+import { MyPieceScreen } from './screens/MyPieceScreen'
+import { MyPiecesScreen } from './screens/MyPiecesScreen'
 import { NewAssistantTeacherScreen } from './screens/NewAssistantTeacherScreen'
+import { NewMyPieceScreen } from './screens/NewMyPieceScreen'
+import { NewPieceScreen } from './screens/NewPieceScreen'
 import { NewSlotScreen } from './screens/NewSlotScreen'
 import { NewStudentScreen } from './screens/NewStudentScreen'
+import { PieceScreen } from './screens/PieceScreen'
+import { PiecesScreen } from './screens/PiecesScreen'
 import { SetPasswordScreen } from './screens/SetPasswordScreen'
 import { SlotsScreen } from './screens/SlotsScreen'
 import { StudentProfileScreen } from './screens/StudentProfileScreen'
 import { StudentsScreen } from './screens/StudentsScreen'
+import { VoidPieceScreen } from './screens/VoidPieceScreen'
 
 /** Screens of the lead teacher's settings (RF-02: no other role gets these routes). */
 const ADMIN_SCREENS: Record<(typeof ADMIN_PATHS)[number], ReactElement> = {
@@ -48,8 +64,30 @@ const SLOT_SCREENS: Record<(typeof SLOT_PATHS)[number], ReactElement> = {
   '/slots/:id/edit': <EditSlotScreen />,
 }
 
+/** The student's own pieces: the same paths the teachers use, with other screens (DI-78). */
+const MY_PIECE_SCREENS: Record<(typeof PIECE_PATHS)[number], ReactElement> = {
+  '/pieces/new': <NewMyPieceScreen />,
+  '/pieces/:id': <MyPieceScreen />,
+  '/pieces/:id/edit': <EditMyPieceScreen />,
+}
+
+/** The pieces of every student, for the lead and the assistant teacher (DI-78). */
+const TEACHER_PIECE_SCREENS: Record<(typeof TEACHER_PIECE_PATHS)[number], ReactElement> = {
+  '/pieces/new': <NewPieceScreen />,
+  '/pieces/:id': <PieceScreen />,
+  '/pieces/:id/edit': <EditPieceScreen />,
+  '/pieces/:id/void': <VoidPieceScreen />,
+}
+
+/** The Piezas tab is one path with a screen per role. */
+function PiecesTab() {
+  const { user } = useSession()
+  return user?.role === 'STUDENT' ? <MyPiecesScreen /> : <PiecesScreen />
+}
+
 /** Tabs that already have their screen; the others show the placeholder. */
 const TAB_SCREENS: Record<string, ReactElement> = {
+  '/pieces': <PiecesTab />,
   '/slots': <SlotsScreen />,
   '/students': <StudentsScreen />,
 }
@@ -117,6 +155,13 @@ function RoleRoutes() {
           })}
         {user.role === 'LEAD_TEACHER' &&
           SLOT_PATHS.map((path) => <Route key={path} path={path} element={SLOT_SCREENS[path]} />)}
+        {user.role === 'STUDENT'
+          ? PIECE_PATHS.map((path) => (
+              <Route key={path} path={path} element={MY_PIECE_SCREENS[path]} />
+            ))
+          : TEACHER_PIECE_PATHS.map((path) => (
+              <Route key={path} path={path} element={TEACHER_PIECE_SCREENS[path]} />
+            ))}
         <Route path="*" element={<Navigate to={home} replace />} />
       </Route>
     </Routes>

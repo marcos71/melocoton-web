@@ -61,3 +61,33 @@ describe('canUsePath: slots', () => {
     expect(canUsePath(role, '/slots/7/edit')).toBe(false)
   })
 })
+
+describe('canUsePath: pieces', () => {
+  it('CP22_aStudentCannotOpenTheVoidRoute', () => {
+    expect(canUsePath('STUDENT', '/pieces/3/void')).toBe(false)
+  })
+
+  it.each(['STUDENT', 'ASSISTANT_TEACHER', 'LEAD_TEACHER'] as const)(
+    'everyRoleOpensPieceDetailRoutes_%s',
+    (role) => {
+      expect(canUsePath(role, '/pieces')).toBe(true)
+      expect(canUsePath(role, '/pieces/new')).toBe(true)
+      expect(canUsePath(role, '/pieces/3')).toBe(true)
+      expect(canUsePath(role, '/pieces/3/edit')).toBe(true)
+      expect(canUsePath(role, '/pieces/3/other')).toBe(false)
+    },
+  )
+
+  it.each(['ASSISTANT_TEACHER', 'LEAD_TEACHER'] as const)(
+    'RF56_%sOpensTheVoidRoute',
+    (role) => {
+      expect(canUsePath(role, '/pieces/3/void')).toBe(true)
+      expect(canUsePath(role, '/pieces/3/void?x=1')).toBe(true)
+    },
+  )
+
+  it('RF02_theAssistantTeacherStillCannotOpenTheLeadRoutes', () => {
+    expect(canUsePath('ASSISTANT_TEACHER', '/slots/new')).toBe(false)
+    expect(canUsePath('ASSISTANT_TEACHER', '/students/3')).toBe(false)
+  })
+})

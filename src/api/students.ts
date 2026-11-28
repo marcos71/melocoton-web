@@ -6,6 +6,7 @@ import type { components } from './schema'
 export type StudentItem = components['schemas']['StudentItemResponse']
 export type StudentProfile = components['schemas']['StudentProfileResponse']
 export type UpcomingLesson = components['schemas']['UpcomingLessonResponse']
+export type StudentDirectoryEntry = components['schemas']['StudentDirectoryEntryResponse']
 export type CreateStudentRequest = components['schemas']['CreateStudentRequest']
 export type UpdateStudentRequest = components['schemas']['UpdateStudentRequest']
 
@@ -19,6 +20,10 @@ export type StudentsFilters = {
 export const studentsQueryKey = ['students'] as const
 export const studentsListKey = [...studentsQueryKey, 'list'] as const
 export const studentDetailKey = (id: number) => [...studentsQueryKey, 'detail', id] as const
+/** The light list the piece pickers read (DI-85); student writes refresh it. */
+export const studentDirectoryRootKey = [...studentsQueryKey, 'directory'] as const
+export const studentDirectoryKey = (status: StatusFilter) =>
+  [...studentDirectoryRootKey, status] as const
 
 /** GET /api/v1/students. */
 export function listStudents(
@@ -26,6 +31,16 @@ export function listStudents(
   client: ApiClient = apiClient,
 ): Promise<StudentItem[]> {
   return callApi(() => client.GET('/api/v1/students', { params: { query: filters } }))
+}
+
+/** GET /api/v1/students/directory: id, name, phone and active, sorted by name. */
+export function listStudentDirectory(
+  status: StatusFilter,
+  client: ApiClient = apiClient,
+): Promise<StudentDirectoryEntry[]> {
+  return callApi(() =>
+    client.GET('/api/v1/students/directory', { params: { query: { status } } }),
+  )
 }
 
 /** GET /api/v1/students/{id}. */
@@ -59,6 +74,13 @@ export function useStudentsQuery(filters: StudentsFilters) {
   })
 }
 
+export function useStudentDirectoryQuery(status: StatusFilter) {
+  return useQuery({
+    queryKey: studentDirectoryKey(status),
+    queryFn: () => listStudentDirectory(status),
+  })
+}
+
 /** A missing student is not fixed by trying again, so a 404 is not retried. */
 const RETRIES = 1
 
@@ -78,6 +100,7 @@ export function useCreateStudent() {
     onSuccess: (student) => {
       queryClient.setQueryData(studentDetailKey(student.id), student)
       void queryClient.invalidateQueries({ queryKey: studentsListKey })
+      void queryClient.invalidateQueries({ queryKey: studentDirectoryRootKey })
     },
   })
 }
@@ -89,6 +112,7 @@ export function useUpdateStudent(id: number) {
     onSuccess: (student) => {
       queryClient.setQueryData(studentDetailKey(id), student)
       void queryClient.invalidateQueries({ queryKey: studentsListKey })
+      void queryClient.invalidateQueries({ queryKey: studentDirectoryRootKey })
     },
     onError: (error) => {
       // A 404 means the student is gone: the profile read has to find out.
